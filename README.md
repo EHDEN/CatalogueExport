@@ -72,4 +72,5 @@ Achilles is licensed under Apache License 2.0
 
 ## Acknowledgements
 - The European Health Data & Evidence Network has received funding from the Innovative Medicines Initiative 2 Joint Undertaking (JU) under grant agreement No 806968. The JU receives support from the European Union’s Horizon 2020 research 
+- We like to thank the OHDSI community for their fantastic work on the Achilles R Package that provides the basis of most the analysis used in this package
 
