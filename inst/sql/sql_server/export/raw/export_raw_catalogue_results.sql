@@ -6,7 +6,7 @@ SELECT
   stratum_4,
   stratum_5,
   count_value
-FROM @results_database_schema.achilles_results
+FROM @results_database_schema.catalogue_results
 WHERE count_value > @min_cell_count
 {@analysis_ids != ''} ? {AND analysis_id IN (@analysis_ids)}
 ;

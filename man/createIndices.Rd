@@ -10,7 +10,7 @@ createIndices(
   outputFolder,
   sqlOnly = FALSE,
   verboseMode = TRUE,
-  achillesTables = c("achilles_results", "achilles_results_dist")
+  catalogueTables = c("catalogue_results", "catalogue_results_dist")
 )
 }
 \arguments{
@@ -25,7 +25,7 @@ On SQL Server, this should specifiy both the database and the schema, so for exa
 
 \item{verboseMode}{Boolean to determine if the console will show all execution steps. Default = TRUE}
 
-\item{achillesTables}{Which achilles tables should be indexed? Default is both achilles_results and achilles_results_dist.}
+\item{catalogueTables}{Which achilles tables should be indexed? Default is both achilles_results and achilles_results_dist.}
 }
 \description{
 Create indicies

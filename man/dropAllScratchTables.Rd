@@ -7,10 +7,9 @@
 dropAllScratchTables(
   connectionDetails,
   scratchDatabaseSchema,
-  tempAchillesPrefix = "tmpach",
-  tempHeelPrefix = "tmpheel",
+  tempPrefix = "tmpach",
   numThreads = 1,
-  tableTypes = c("achilles", "heel"),
+  tableTypes = "catalogueExport",
   outputFolder,
   verboseMode = TRUE
 )
@@ -20,17 +19,17 @@ dropAllScratchTables(
 
 \item{scratchDatabaseSchema}{string name of database schema that Achilles scratch tables were written to.}
 
-\item{tempAchillesPrefix}{The prefix to use for the "temporary" (but actually permanent) Achilles analyses tables. Default is "tmpach"}
-
-\item{tempHeelPrefix}{The prefix to use for the "temporary" (but actually permanent) Heel tables. Default is "tmpheel"}
+\item{tempPrefix}{The prefix to use for the "temporary" (but actually permanent) Achilles analyses tables. Default is "tmpach"}
 
 \item{numThreads}{The number of threads to use to run this function. Default is 1 thread.}
 
-\item{tableTypes}{The types of Achilles scratch tables to drop: achilles or heel or both}
+\item{tableTypes}{The types of scratch tables to drop: catalogueExport}
 
 \item{outputFolder}{Path to store logs and SQL files}
 
 \item{verboseMode}{Boolean to determine if the console will show all execution steps. Default = TRUE}
+
+\item{tempHeelPrefix}{The prefix to use for the "temporary" (but actually permanent) Heel tables. Default is "tmpheel"}
 }
 \description{
 Drop all possible scratch tables

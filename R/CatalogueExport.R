@@ -20,13 +20,13 @@
 # @author Peter Rijnbeek
 
 
-#' The main Achilles analyses (for v5.x)
+#' The main CatalogueExport analyses (for v5.x)
 #'
 #' @description
-#' \code{achilles} creates descriptive statistics summary for an entire OMOP CDM instance.
+#' \code{CatalogueExport} exports a set of  descriptive statistics summary from the CDM, to be uploaded in the Database Catalogue.
 #'
 #' @details
-#' \code{achilles} creates descriptive statistics summary for an entire OMOP CDM instance.
+#' \code{CatalogueExport} exports a set of  descriptive statistics summary from the CDM, to be uploaded in the Database Catalogue.
 #' 
 #' @param connectionDetails                An R object of type \code{connectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.
 #' @param cdmDatabaseSchema    	           Fully qualified name of database schema that contains OMOP CDM schema.
@@ -44,11 +44,10 @@
 #' @param createTable                      If true, new results tables will be created in the results schema. If not, the tables are assumed to already exist, and analysis results will be inserted (slower on MPP).
 #' @param smallCellCount                   To avoid patient identifiability, cells with small counts (<= smallCellCount) are deleted. Set to NULL if you don't want any deletions.
 #' @param cdmVersion                       Define the OMOP CDM version used:  currently supports v5 and above. Use major release number or minor number only (e.g. 5, 5.3)
-#' @param runHeel                          Boolean to determine if Achilles Heel data quality reporting will be produced based on the summary statistics.  Default = TRUE
 #' @param validateSchema                   Boolean to determine if CDM Schema Validation should be run. Default = FALSE
 #' @param createIndices                    Boolean to determine if indices should be created on the resulting Achilles tables. Default= TRUE
 #' @param numThreads                       (OPTIONAL, multi-threaded mode) The number of threads to use to run Achilles in parallel. Default is 1 thread.
-#' @param tempAchillesPrefix               (OPTIONAL, multi-threaded mode) The prefix to use for the scratch Achilles analyses tables. Default is "tmpach"
+#' @param tempPrefix               (OPTIONAL, multi-threaded mode) The prefix to use for the scratch Achilles analyses tables. Default is "tmpach"
 #' @param dropScratchTables                (OPTIONAL, multi-threaded mode) TRUE = drop the scratch tables (may take time depending on dbms), FALSE = leave them in place for later removal.
 #' @param sqlOnly                          Boolean to determine if Achilles should be fully executed. TRUE = just generate SQL files, don't actually run, FALSE = run Achilles
 #' @param outputFolder                     Path to store logs and SQL files
@@ -82,7 +81,7 @@ catalogueExport <- function (connectionDetails,
                       runCostAnalysis = FALSE,
                       createIndices = TRUE,
                       numThreads = 1,
-                      tempAchillesPrefix = "tmpach",
+                      tempPrefix = "tmpach",
                       dropScratchTables = TRUE,
                       sqlOnly = FALSE,
                       outputFolder = "output",
@@ -188,12 +187,12 @@ catalogueExport <- function (connectionDetails,
   
   resultsTables <- list(
     list(detailType = "results",
-         tablePrefix = tempAchillesPrefix, 
+         tablePrefix = tempPrefix, 
          schema = read.csv(file = system.file("csv", "schemas", "schema_achilles_results.csv", package = "Achilles"), 
                            header = TRUE),
          analysisIds = analysisDetails[analysisDetails$DISTRIBUTION <= 0, ]$ANALYSIS_ID),
     list(detailType = "results_dist",
-         tablePrefix = sprintf("%1s_%2s", tempAchillesPrefix, "dist"),
+         tablePrefix = sprintf("%1s_%2s", tempPrefix, "dist"),
          schema = read.csv(file = system.file("csv", "schemas", "schema_achilles_results_dist.csv", package = "Achilles"), 
                            header = TRUE),
          analysisIds = analysisDetails[abs(analysisDetails$DISTRIBUTION) == 1, ]$ANALYSIS_ID))
@@ -205,10 +204,10 @@ catalogueExport <- function (connectionDetails,
   if (numThreads == 1 || scratchDatabaseSchema == "#") {
     numThreads <- 1
     
-    if (.supportsTempTables(connectionDetails)) {
-      scratchDatabaseSchema <- "#"
-      schemaDelim <- "s_"
-    }
+  if (.supportsTempTables(connectionDetails)) {
+     scratchDatabaseSchema <- "#"
+     schemaDelim <- "s_"
+  }
     
     ParallelLogger::logInfo("Beginning single-threaded execution")
     
@@ -285,16 +284,16 @@ catalogueExport <- function (connectionDetails,
   
   if ((numThreads > 1 || !.supportsTempTables(connectionDetails)) && !sqlOnly) {
     # Drop the scratch tables
-    ParallelLogger::logInfo(sprintf("Dropping scratch Achilles tables from schema %s", scratchDatabaseSchema))
+    ParallelLogger::logInfo(sprintf("Dropping scratch CatalogueExport tables from schema %s", scratchDatabaseSchema))
     
     dropAllScratchTables(connectionDetails = connectionDetails,
                          scratchDatabaseSchema = scratchDatabaseSchema,
-                         tempAchillesPrefix = tempAchillesPrefix,
+                         tempPrefix = tempPrefix,
                          numThreads = numThreads,
-                         tableTypes = c("achilles"),
+                         tableTypes = c("catalogueExport"),
                          outputFolder = outputFolder)
     
-    ParallelLogger::logInfo(sprintf("Temporary Achilles tables removed from schema %s", scratchDatabaseSchema))
+    ParallelLogger::logInfo(sprintf("Temporary CatalogueExport tables removed from schema %s", scratchDatabaseSchema))
   }
   
  
@@ -302,13 +301,11 @@ catalogueExport <- function (connectionDetails,
   # Generate Main Analyses ----------------------------------------------------------------------------------------------------------------
   
   mainAnalysisIds <- analysisDetails$ANALYSIS_ID
-  if (runCostAnalysis) {
-    # remove distributed cost analysis ids, since that's been executed already
-    mainAnalysisIds <- dplyr::anti_join(x = analysisDetails, y = distCostAnalysisDetails, by = "ANALYSIS_ID")$ANALYSIS_ID
-  }
+
+  # Get the Achilles Analysis
   mainSqls <- lapply(mainAnalysisIds, function(analysisId) {
     list(analysisId = analysisId,
-         sql = .getAnalysisSql(analysisId = analysisId,
+         sql = .getAchillesAnalysisSql(analysisId = analysisId,
                                connectionDetails = connectionDetails,
                                schemaDelim = schemaDelim,
                                scratchDatabaseSchema = scratchDatabaseSchema,
@@ -316,7 +313,7 @@ catalogueExport <- function (connectionDetails,
                                resultsDatabaseSchema = resultsDatabaseSchema,
                                oracleTempSchema = oracleTempSchema,
                                cdmVersion = cdmVersion,
-                               tempAchillesPrefix = tempAchillesPrefix,
+                               tempAchillesPrefix = tempPrefix,
                                resultsTables = resultsTables,
                                sourceName = sourceName,
                                numThreads = numThreads,
@@ -325,6 +322,10 @@ catalogueExport <- function (connectionDetails,
   })
   
   achillesSql <- c(achillesSql, lapply(mainSqls, function(s) s$sql))
+  
+  # Get the additional Analsyses from CatalogueExport
+  # ToDo
+  
   
   if (!sqlOnly) {
     ParallelLogger::logInfo("Executing multiple queries. This could take a while")
@@ -380,7 +381,7 @@ catalogueExport <- function (connectionDetails,
   resultsTablesToMerge <- resultsTables[include]
   
   mergeSqls <- lapply(resultsTablesToMerge, function(table) {
-    .mergeAchillesScratchTables(resultsTable = table,
+    .mergeScratchTables(resultsTable = table,
                                 connectionDetails = connectionDetails,
                                 analysisIds = analysisDetails$ANALYSIS_ID,
                                 createTable = createTable,
@@ -389,19 +390,18 @@ catalogueExport <- function (connectionDetails,
                                 resultsDatabaseSchema = resultsDatabaseSchema,
                                 oracleTempSchema = oracleTempSchema,
                                 cdmVersion = cdmVersion,
-                                tempAchillesPrefix = tempAchillesPrefix,
+                                tempPrefix = tempPrefix,
                                 numThreads = numThreads,
                                 smallCellCount = smallCellCount,
                                 outputFolder = outputFolder,
-                                sqlOnly = sqlOnly,
-                                includeRawCost = ifelse(table$detailType == "results_dist", runCostAnalysis, FALSE))
+                                sqlOnly = sqlOnly)
   })
   
   achillesSql <- c(achillesSql, mergeSqls)
   
   if (!sqlOnly) {
     
-    ParallelLogger::logInfo("Merging scratch Achilles tables")
+    ParallelLogger::logInfo("Merging scratch CatalogueExport tables")
     
     if (numThreads == 1) {
       tryCatch({
@@ -409,7 +409,7 @@ catalogueExport <- function (connectionDetails,
           DatabaseConnector::executeSql(connection = connection, sql = sql)
         }
       }, error = function(e) {
-        ParallelLogger::logError(sprintf("Merging scratch Achilles tables [ERROR] (%s)",
+        ParallelLogger::logError(sprintf("Merging scratch CatalogueExport tables [ERROR] (%s)",
                                          e))
       })
     } else {
@@ -423,7 +423,7 @@ catalogueExport <- function (connectionDetails,
                                                 DatabaseConnector::executeSql(connection = connection, sql = sql)
                                               })
       }, error = function(e) {
-        ParallelLogger::logError(sprintf("Merging scratch Achilles tables (merging scratch Achilles tables) [ERROR] (%s)",
+        ParallelLogger::logError(sprintf("Merging scratch CatalogueExport tables [ERROR] (%s)",
                                          e))
       })
       ParallelLogger::stopCluster(cluster = cluster)
@@ -431,7 +431,7 @@ catalogueExport <- function (connectionDetails,
   }
   
   if (!sqlOnly) {
-    ParallelLogger::logInfo(sprintf("Done. Achilles results can now be found in schema %s", resultsDatabaseSchema))
+    ParallelLogger::logInfo(sprintf("Done. Catalogue results can now be found in schema %s", resultsDatabaseSchema))
   }
   
   # Clean up scratch tables -----------------------------------------------
@@ -441,16 +441,16 @@ catalogueExport <- function (connectionDetails,
     DatabaseConnector::disconnect(connection = connection)
   } else if (dropScratchTables & !sqlOnly) {
     # Drop the scratch tables
-    ParallelLogger::logInfo(sprintf("Dropping scratch Achilles tables from schema %s", scratchDatabaseSchema))
+    ParallelLogger::logInfo(sprintf("Dropping scratch Catalogie tables from schema %s", scratchDatabaseSchema))
     
     dropAllScratchTables(connectionDetails = connectionDetails, 
                          scratchDatabaseSchema = scratchDatabaseSchema, 
-                         tempAchillesPrefix = tempAchillesPrefix, 
+                         tempPrefix = tempPrefix, 
                          numThreads = numThreads,
-                         tableTypes = c("achilles"),
+                         tableTypes = c("catalogueExport"),
                          outputFolder = outputFolder)
     
-    ParallelLogger::logInfo(sprintf("Temporary Achilles tables removed from schema %s", scratchDatabaseSchema))
+    ParallelLogger::logInfo(sprintf("Temporary Catalogue tables removed from schema %s", scratchDatabaseSchema))
   }
   
   # Create indices -----------------------------------------------------------------
@@ -458,11 +458,11 @@ catalogueExport <- function (connectionDetails,
   indicesSql <- "/* INDEX CREATION SKIPPED PER USER REQUEST */"
   
   if (createIndices) {
-    achillesTables <- lapply(unique(analysisDetails$DISTRIBUTION), function(a) {
+    catalogueTables <- lapply(unique(analysisDetails$DISTRIBUTION), function(a) {
       if (a == 0) {
-        "achilles_results"
+        "catalogue_results"
       } else {
-        "achilles_results_dist"
+        "catalogue_results_dist"
       }
     })
     indicesSql <- createIndices(connectionDetails = connectionDetails,
@@ -470,14 +470,14 @@ catalogueExport <- function (connectionDetails,
                                 outputFolder = outputFolder,
                                 sqlOnly = sqlOnly,
                                 verboseMode = verboseMode, 
-                                achillesTables = unique(achillesTables))
+                                catalogueTables = unique(catalogueTables))
   }
   achillesSql <- c(achillesSql, indicesSql)
   
  
   if (sqlOnly) {
-    SqlRender::writeSql(sql = paste(achillesSql, collapse = "\n\n"), targetFile = file.path(outputFolder, "achilles.sql"))
-    ParallelLogger::logInfo(sprintf("All Achilles SQL scripts can be found in folder: %s", file.path(outputFolder, "achilles.sql")))
+    SqlRender::writeSql(sql = paste(achillesSql, collapse = "\n\n"), targetFile = file.path(outputFolder, "catalogue_export.sql"))
+    ParallelLogger::logInfo(sprintf("All Catalogue Export SQL scripts can be found in folder: %s", file.path(outputFolder, "catalogue_export.sql")))
   }
   
   # Export to csv  -----------------------------------------------------------------
@@ -487,7 +487,7 @@ catalogueExport <- function (connectionDetails,
                     analysisIds = analysisIds,
                     minCellCount = 5,
                     exportFolder = outputFolder) 
-  ParallelLogger::logInfo(sprintf("Done. The exported database characteristic can now be found here: %s", file.path(outputFolder, "catalogue_results.csv"))) #ToDO Add timestamp
+  ParallelLogger::logInfo(sprintf("Done. The database characteristics have been exported to: %s", file.path(outputFolder, "catalogue_results.csv"))) #ToDO Add timestamp
   ParallelLogger::logInfo("This file can now be uploaded in the Database Catalogue")
   
   ParallelLogger::unregisterLogger("catalogueExport")
@@ -495,19 +495,19 @@ catalogueExport <- function (connectionDetails,
   # Return results ----------------------------------------------------------------
   
   
-  achillesResults <- list(resultsConnectionDetails = connectionDetails,
-                          resultsTable = "achilles_results",
+  catalogueResults <- list(resultsConnectionDetails = connectionDetails,
+                          resultsTable = "catalogue_results",
                           resultsDistributionTable = "achilles_results_dist",
-                          analysis_table = "achilles_analysis",
+                          analysis_table = "catalogue_analysis",
                           sourceName = sourceName,
                           analysisIds = analysisDetails$ANALYSIS_ID,
                           achillesSql = paste(achillesSql, collapse = "\n\n"),
                           indicesSql = indicesSql,
                           call = match.call())
   
-  class(achillesResults) <- "achillesResults"
+  class(catalogueResults) <- "catalogueResults"
   
-  invisible(achillesResults)
+  invisible(catalogueResults)
 }
 
 
@@ -522,7 +522,7 @@ catalogueExport <- function (connectionDetails,
 #' @param outputFolder                     Path to store logs and SQL files
 #' @param sqlOnly                          TRUE = just generate SQL files, don't actually run, FALSE = run Achilles
 #' @param verboseMode                      Boolean to determine if the console will show all execution steps. Default = TRUE 
-#' @param achillesTables                   Which achilles tables should be indexed? Default is both achilles_results and achilles_results_dist. 
+#' @param catalogueTables                   Which achilles tables should be indexed? Default is both achilles_results and achilles_results_dist. 
 #' 
 #' @export
 createIndices <- function(connectionDetails,
@@ -530,7 +530,7 @@ createIndices <- function(connectionDetails,
                           outputFolder,
                           sqlOnly = FALSE,
                           verboseMode = TRUE,
-                          achillesTables = c("achilles_results", "achilles_results_dist")) {
+                          catalogueTables = c("catalogue_results", "catalogue_results_dist")) {
   
   # Log execution --------------------------------------------------------------------------------------------------------------------
   
@@ -559,17 +559,17 @@ createIndices <- function(connectionDetails,
   
   if (connectionDetails$dbms == "pdw") {
     indicesSql <- c(indicesSql, 
-                    SqlRender::render("create clustered columnstore index ClusteredIndex_Achilles_results on @resultsDatabaseSchema.achilles_results;",
+                    SqlRender::render("create clustered columnstore index ClusteredIndex_Catalogue_results on @resultsDatabaseSchema.catalogue_results;",
                                       resultsDatabaseSchema = resultsDatabaseSchema))
   }
   
-  indices <- read.csv(file = system.file("csv", "post_processing", "indices.csv", package = "Achilles"), 
+  indices <- read.csv(file = system.file("csv", "post_processing", "indices.csv", package = "CatalogueExport"), 
                       header = TRUE, stringsAsFactors = FALSE)
   
   # create index SQLs ------------------------------------------------------------------------------------------------  
   
   for (i in 1:nrow(indices)) {
-    if (indices[i,]$TABLE_NAME %in% achillesTables) {
+    if (indices[i,]$TABLE_NAME %in% catalogueTables) {
       sql <- SqlRender::render(sql = "drop index @resultsDatabaseSchema.@indexName;",
                                resultsDatabaseSchema = resultsDatabaseSchema,
                                indexName = indices[i,]$INDEX_NAME)
@@ -701,20 +701,19 @@ getAnalysisDetails <- function() {
 #' 
 #' @param connectionDetails                An R object of type \code{connectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.
 #' @param scratchDatabaseSchema            string name of database schema that Achilles scratch tables were written to. 
-#' @param tempAchillesPrefix               The prefix to use for the "temporary" (but actually permanent) Achilles analyses tables. Default is "tmpach"
+#' @param tempPrefix               The prefix to use for the "temporary" (but actually permanent) Achilles analyses tables. Default is "tmpach"
 #' @param tempHeelPrefix                   The prefix to use for the "temporary" (but actually permanent) Heel tables. Default is "tmpheel"
 #' @param numThreads                       The number of threads to use to run this function. Default is 1 thread.
-#' @param tableTypes                       The types of Achilles scratch tables to drop: achilles or heel or both
+#' @param tableTypes                       The types of scratch tables to drop: catalogueExport
 #' @param outputFolder                     Path to store logs and SQL files
 #' @param verboseMode                      Boolean to determine if the console will show all execution steps. Default = TRUE  
 #' 
 #' @export
 dropAllScratchTables <- function(connectionDetails, 
                                  scratchDatabaseSchema, 
-                                 tempAchillesPrefix = "tmpach", 
-                                 tempHeelPrefix = "tmpheel", 
+                                 tempPrefix = "tmpach", 
                                  numThreads = 1,
-                                 tableTypes = c("achilles", "heel"),
+                                 tableTypes = "catalogueExport",
                                  outputFolder,
                                  verboseMode = TRUE) {
   
@@ -748,18 +747,18 @@ dropAllScratchTables <- function(connectionDetails,
     }
   }
   
-  if ("achilles" %in% tableTypes) {
+  if ("catalogueExport" %in% tableTypes) {
     
     # Drop Achilles Scratch Tables ------------------------------------------------------
     
     analysisDetails <- getAnalysisDetails()
     
     resultsTables <- lapply(analysisDetails$ANALYSIS_ID[analysisDetails$DISTRIBUTION <= 0], function(id) {
-      sprintf("%s_%d", tempAchillesPrefix, id)
+      sprintf("%s_%d", tempPrefix, id)
     })
     
     resultsDistTables <- lapply(analysisDetails$ANALYSIS_ID[abs(analysisDetails$DISTRIBUTION) == 1], function(id) {
-      sprintf("%s_dist_%d", tempAchillesPrefix, id)
+      sprintf("%s_dist_%d", tempPrefix, id)
     })
     
     dropSqls <- lapply(c(resultsTables, resultsDistTables), function(scratchTable) {
@@ -769,17 +768,6 @@ dropAllScratchTables <- function(connectionDetails,
                                scratchTable = scratchTable)
       sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms)
     })
-    
-    dropRawCostSqls <- lapply(c("Drug", "Procedure"), function(domainId) {
-      sql <- SqlRender::render(sql = "IF OBJECT_ID('@scratchDatabaseSchema@schemaDelim@tempAchillesPrefix_@domainId_cost_raw', 'U') IS NOT NULL DROP TABLE @scratchDatabaseSchema@schemaDelim@tempAchillesPrefix_@domainId_cost_raw;",
-                               scratchDatabaseSchema = scratchDatabaseSchema,
-                               schemaDelim = schemaDelim,
-                               tempAchillesPrefix = tempAchillesPrefix,
-                               domainId = domainId)
-      sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms)
-    })
-    
-    dropSqls <- c(dropSqls, dropRawCostSqls)
     
     cluster <- ParallelLogger::makeCluster(numberOfThreads = numThreads, singleThreadToMain = TRUE)
     dummy <- ParallelLogger::clusterApply(cluster = cluster, 
@@ -797,46 +785,7 @@ dropAllScratchTables <- function(connectionDetails,
     
     ParallelLogger::stopCluster(cluster = cluster)
   }
-  
-  if ("heel" %in% tableTypes) {
-    # Drop Parallel Heel Scratch Tables ------------------------------------------------------
-    
-    parallelFiles <- list.files(path = file.path(system.file(package = "Achilles"), 
-                                                 "sql/sql_server/heels/parallel"), 
-                                recursive = TRUE, 
-                                full.names = FALSE, 
-                                all.files = FALSE,
-                                pattern = "\\.sql$")
-    
-    parallelHeelTables <- lapply(parallelFiles, function(t) tolower(paste(tempHeelPrefix,
-                                                                          trimws(tools::file_path_sans_ext(basename(t))),
-                                                                          sep = "_")))
-    
-    dropSqls <- lapply(parallelHeelTables, function(scratchTable) {
-      sql <- SqlRender::render("IF OBJECT_ID('@scratchDatabaseSchema@schemaDelim@scratchTable', 'U') IS NOT NULL DROP TABLE @scratchDatabaseSchema@schemaDelim@scratchTable;", 
-                               scratchDatabaseSchema = scratchDatabaseSchema,
-                               schemaDelim = schemaDelim,
-                               scratchTable = scratchTable)
-      sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms)
-    })
-    
-    cluster <- ParallelLogger::makeCluster(numberOfThreads = numThreads, singleThreadToMain = TRUE)
-    dummy <- ParallelLogger::clusterApply(cluster = cluster, 
-                                          x = dropSqls, 
-                                          function(sql) {
-                                            connection <- DatabaseConnector::connect(connectionDetails = connectionDetails)
-                                            tryCatch({
-                                              DatabaseConnector::executeSql(connection = connection, sql = sql)  
-                                            }, error = function(e) {
-                                              ParallelLogger::logError(sprintf("Drop Heel Scratch Table -- ERROR (%s)", e))  
-                                            }, finally = {
-                                              DatabaseConnector::disconnect(connection = connection)
-                                            })
-                                          })
-    
-    ParallelLogger::stopCluster(cluster = cluster)
-  }
-  
+
   ParallelLogger::unregisterLogger("dropAllScratchTables")
 }
 
@@ -864,7 +813,7 @@ dropAllScratchTables <- function(connectionDetails,
   !(connectionDetails$dbms %in% c("bigquery"))
 }
 
-.getAnalysisSql <- function(analysisId, 
+.getAchillesAnalysisSql <- function(analysisId, 
                             connectionDetails,
                             schemaDelim,
                             scratchDatabaseSchema,
@@ -894,7 +843,7 @@ dropAllScratchTables <- function(connectionDetails,
                                     singleThreaded = (scratchDatabaseSchema == "#"))
 }
 
-.mergeAchillesScratchTables <- function(resultsTable,
+.mergeScratchTables <- function(resultsTable,
                                         analysisIds,
                                         createTable,
                                         connectionDetails,
@@ -903,7 +852,7 @@ dropAllScratchTables <- function(connectionDetails,
                                         resultsDatabaseSchema,
                                         oracleTempSchema,
                                         cdmVersion,
-                                        tempAchillesPrefix,
+                                        tempPrefix,
                                         numThreads,
                                         smallCellCount,
                                         outputFolder,
@@ -929,7 +878,7 @@ dropAllScratchTables <- function(connectionDetails,
     
     if (!sqlOnly) {
       # obtain the runTime for this analysis
-      runTime <- .getAchillesResultBenchmark(analysisId,
+      runTime <- .getResultBenchmark(analysisId,
                                              outputFolder)
       
       benchmarkSelects <- lapply(resultsTable$schema$FIELD_NAME, function(c) {
@@ -953,31 +902,9 @@ dropAllScratchTables <- function(connectionDetails,
     analysisSql
   })
   
-  if (!sqlOnly & includeRawCost) {
-    # obtain the runTime for this analysis
-    
-    benchmarkSqls <- lapply(c(15000, 16000), function(rawCostId) {
-      runTime <- .getAchillesResultBenchmark(rawCostId, outputFolder)  
-      
-      benchmarkSelects <- lapply(resultsTable$schema$FIELD_NAME, function(c) {
-        if (tolower(c) == "analysis_id") {
-          sprintf("%d as analysis_id", .getBenchmarkOffset() + rawCostId)
-        } else if (tolower(c) == "stratum_1") {
-          sprintf("'%s' as stratum_1", runTime)
-        } else if (tolower(c) == "count_value") {
-          sprintf("%d as count_value", smallCellCount + 1) 
-        } else {
-          sprintf("NULL as %s", c)
-        }
-      })
-      SqlRender::render(sql = "select @benchmarkSelect", benchmarkSelect = paste(benchmarkSelects, collapse = ", "))
-    })
-    benchmarkSql <- paste(benchmarkSqls, collapse = " union all ")
-    detailSqls <- c(detailSqls, benchmarkSql)
-  }
-  
-  SqlRender::loadRenderTranslateSql(sqlFilename = "analyses/merge_achilles_tables.sql",
-                                    packageName = "Achilles",
+
+  SqlRender::loadRenderTranslateSql(sqlFilename = "analyses/merge_catalogue_tables.sql",
+                                    packageName = "CatalogueExport",
                                     dbms = connectionDetails$dbms,
                                     warnOnMissingParameters = FALSE,
                                     createTable = createTable,
@@ -1016,7 +943,7 @@ dropAllScratchTables <- function(connectionDetails,
   distIds <- analysisDetails$ANALYSIS_ID[analysisDetails$DISTRIBUTION == 1]
   
   if (length(resultIds) > 0) {
-    sql <- SqlRender::render(sql = "delete from @resultsDatabaseSchema.achilles_results where analysis_id in (@analysisIds);",
+    sql <- SqlRender::render(sql = "delete from @resultsDatabaseSchema.catalogue_results where analysis_id in (@analysisIds);",
                              resultsDatabaseSchema = resultsDatabaseSchema,
                              analysisIds = paste(resultIds, collapse = ","))
     sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms)
@@ -1027,7 +954,7 @@ dropAllScratchTables <- function(connectionDetails,
   }
   
   if (length(distIds) > 0) {
-    sql <- SqlRender::render(sql = "delete from @resultsDatabaseSchema.achilles_results_dist where analysis_id in (@analysisIds);",
+    sql <- SqlRender::render(sql = "delete from @resultsDatabaseSchema.catalogue_results_dist where analysis_id in (@analysisIds);",
                              resultsDatabaseSchema = resultsDatabaseSchema,
                              analysisIds = paste(distIds, collapse = ","))
     sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms)
@@ -1037,7 +964,7 @@ dropAllScratchTables <- function(connectionDetails,
   }
 }
 
-.getAchillesResultBenchmark <- function(analysisId,
+.getResultBenchmark <- function(analysisId,
                                         outputFolder) {
   
   logs <- read.table(file = file.path(outputFolder, "log_catalogueExport.txt"), 

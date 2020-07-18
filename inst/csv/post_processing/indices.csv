@@ -1,0 +1,9 @@
+INDEX_NAME,TABLE_NAME,FIELDS
+idx_ar_aid,catalogue_results,analysis_id
+idx_ar_s1,catalogue_results,stratum_1
+idx_ar_s2,catalogue_results,stratum_2
+idx_ar_aid_s1,catalogue_results,analysis_id~stratum_1
+idx_ar_aid_s1234,catalogue_results,analysis_id~stratum_1~stratum_2~stratum_3~stratum_4
+idx_ard_aid,catalogue_results_dist,analysis_id
+idx_ard_s1,catalogue_results_dist,stratum_1
+idx_ard_s2,catalogue_results_dist,stratum_2

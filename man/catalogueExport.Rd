@@ -2,7 +2,7 @@
 % Please edit documentation in R/CatalogueExport.R
 \name{catalogueExport}
 \alias{catalogueExport}
-\title{The main Achilles analyses (for v5.x)}
+\title{The main CatalogueExport analyses (for v5.x)}
 \usage{
 catalogueExport(
   connectionDetails,
@@ -20,7 +20,7 @@ catalogueExport(
   runCostAnalysis = FALSE,
   createIndices = TRUE,
   numThreads = 1,
-  tempAchillesPrefix = "tmpach",
+  tempPrefix = "tmpach",
   dropScratchTables = TRUE,
   sqlOnly = FALSE,
   outputFolder = "output",
@@ -62,7 +62,7 @@ If not specified, all analyses will be executed. Use \code{\link{getAnalysisDeta
 
 \item{numThreads}{(OPTIONAL, multi-threaded mode) The number of threads to use to run Achilles in parallel. Default is 1 thread.}
 
-\item{tempAchillesPrefix}{(OPTIONAL, multi-threaded mode) The prefix to use for the scratch Achilles analyses tables. Default is "tmpach"}
+\item{tempPrefix}{(OPTIONAL, multi-threaded mode) The prefix to use for the scratch Achilles analyses tables. Default is "tmpach"}
 
 \item{dropScratchTables}{(OPTIONAL, multi-threaded mode) TRUE = drop the scratch tables (may take time depending on dbms), FALSE = leave them in place for later removal.}
 
@@ -71,17 +71,15 @@ If not specified, all analyses will be executed. Use \code{\link{getAnalysisDeta
 \item{outputFolder}{Path to store logs and SQL files}
 
 \item{verboseMode}{Boolean to determine if the console will show all execution steps. Default = TRUE}
-
-\item{runHeel}{Boolean to determine if Achilles Heel data quality reporting will be produced based on the summary statistics.  Default = TRUE}
 }
 \value{
 An object of type \code{achillesResults} containing details for connecting to the database containing the results
 }
 \description{
-\code{achilles} creates descriptive statistics summary for an entire OMOP CDM instance.
+\code{CatalogueExport} exports a set of  descriptive statistics summary from the CDM, to be uploaded in the Database Catalogue.
 }
 \details{
-\code{achilles} creates descriptive statistics summary for an entire OMOP CDM instance.
+\code{CatalogueExport} exports a set of  descriptive statistics summary from the CDM, to be uploaded in the Database Catalogue.
 }
 \examples{
                               \dontrun{
