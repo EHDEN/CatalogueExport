@@ -1,0 +1,29 @@
+DBMS:
+sql server
+
+Error:
+com.microsoft.sqlserver.jdbc.SQLServerException: Cannot drop the index 'prijnbeek.idx_ar_aid', because it does not exist or you do not have permission.
+
+SQL:
+drop index prijnbeek.idx_ar_aid
+
+R version:
+R version 3.6.2 (2019-12-12)
+
+Platform:
+x86_64-apple-darwin15.6.0
+
+Attached base packages:
+- stats
+- graphics
+- grDevices
+- utils
+- datasets
+- methods
+- base
+
+Other attached packages:
+- devtools (2.3.0)
+- usethis (1.6.1)
+- CatalogueExport (0.0.1)
+- DatabaseConnector (3.0.0)

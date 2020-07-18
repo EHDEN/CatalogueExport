@@ -1,0 +1,40 @@
+Package: CatalogueExport
+Type: Package
+Title: Exports Descriptive Statistics Summary for the EHDEN Database Catalogie
+Version: 0.0.1
+Date: 2020-07-18
+Authors@R: c(
+  person("Peter", "Rijnbeek", email = "p.rijnbeek@erasmusmc.nl", role = c("aut", "cre")),
+  person("Patrick", "Ryan", email = "ryan@ohdsi.org", role = c("aut")),
+  person("Martijn", "Schuemie", email = "schuemie@ohdsi.org", role = c("aut")),
+  person("Vojtech", "Huser", role = c("aut")),
+  person("Chris", "Knoll", role = c("aut")),
+  person("Ajit", "Londhe", email = "alondhe@amgen.com", role = c("aut")),
+  person("Taha", "Abdul-Basser", role = c("aut")),
+  person("Observational Health Data Science and Informatics", role = c("cph"))
+  )
+Maintainer: Peter Rijnbeek <p.rijnbeek@erasmusmc.nl>
+LazyData: true
+Description: Exports descriptive statistics summary for the EHDEN Database Catalogue. 
+Depends:
+  DatabaseConnector (>= 2.0.0)
+Imports:
+  SqlRender (>= 1.6.0),
+  dplyr,
+  rjson,
+  ParallelLogger
+Suggests:
+  testthat,
+  R.utils,
+  shiny,
+  DT,
+  shinydashboard,
+  magrittr,
+  tidyr,
+  knitr, 
+  rmarkdown
+VignetteBuilder: knitr
+License: Apache License
+Roxygen: list(wrap = FALSE)
+RoxygenNote: 7.1.0
+Encoding: UTF-8

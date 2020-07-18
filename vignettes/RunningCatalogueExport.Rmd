@@ -1,0 +1,31 @@
+---
+title: "Running CatalogueExport on Your CDM"
+author: "Peter Rijnbeek"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    number_sections: yes
+    toc: yes
+  html_document:
+    number_sections: yes
+    toc: yes
+vignette: >
+  %\VignetteIndexEntry{Running CatalogieExport on Your CDM}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+library(CatalogueExport)
+knitr::opts_chunk$set(
+  cache = FALSE,
+  comment = "#>",
+  error = FALSE,
+  tidy = FALSE)
+```
+
+# Introduction
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+To Do
