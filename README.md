@@ -8,14 +8,6 @@ CatalogueExport exports a subset of the analysis generated with the **A**utomate
 
 CatalogueExport is actively being developed for CDM v5.x only.
 
-## Exported Analyses
-
-By default the following analyses are included in the export:
-
-   ```{r echo = FALSE, results = 'asis'}
-   library(knitr)
-   kable(mtcars[1:5, ], captiomn = "test")
-   ```
 
 ## Getting Started
 
@@ -23,10 +15,10 @@ By default the following analyses are included in the export:
 1. Make sure you have your data in the OMOP CDM v5.x format
     (https://github.com/OHDSI/CommonDataModel).
 
-1. This package makes use of rJava. Make sure that you have Java installed. If you don't have Java already installed on your computer (on most computers it already is installed), go to [java.com](https://java.com) to get the latest version. If you are having trouble with rJava, [this Stack Overflow post](https://stackoverflow.com/questions/7019912/using-the-rjava-package-on-win7-64-bit-with-r) may assist you when you begin troubleshooting.
+2. This package makes use of rJava. Make sure that you have Java installed. If you don't have Java already installed on your computer (on most computers it already is installed), go to [java.com](https://java.com) to get the latest version. If you are having trouble with rJava, [this Stack Overflow post](https://stackoverflow.com/questions/7019912/using-the-rjava-package-on-win7-64-bit-with-r) may assist you when you begin troubleshooting.
 
 
-1. In R, use the following commands to install CatalogueExport.
+3. In R, use the following commands to install CatalogueExport.
 
     ```r
     if (!require("devtools")) install.packages("devtools")
@@ -41,7 +33,7 @@ By default the following analyses are included in the export:
     # devtools::install_github("EHDEN/CatalogieExport", args="--no-multiarch")  
     ```
 
-1. To run the export execute the following R commands:
+4. To run the export execute the following R commands:
     
     Use the following commands in R: 
   
@@ -73,6 +65,19 @@ By default the following analyses are included in the export:
 
     The SQL platforms supported by [DatabaseConnector](https://github.com/OHDSI/DatabaseConnector) and [SqlRender](https://github.com/OHDSI/SqlRender) are the **only** ones supported here in Achilles as `dbms`. `cdmVersion` can be *ONLY* 5.x (please look at prior commit history for v4 support).
 
+## Excuted Analyses
+
+The following analyses are included in the export by default: [Analyses](https://github.com/EHDEN/CatalogueExport/blob/master/inst/csv/analyses/achilles_catalogue_details.csv)
+
+Excluding analyses is not recommended but if necessary for governance rules you can specify the analyses to exclude using `exclude_analysis_id = c(1,3)` To Do
+
+If you like to view the sql that is executed for a specific analyses you can run the following command:
+
+```r
+  showSql(analysisId = 100)
+```
+
+In case you first want to check which sql is executed against the CDM you can set `sql_only = TRUE`. This will not execute anything but will create a sql file in your output folder.
 
 ## License
 

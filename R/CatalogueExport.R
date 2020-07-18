@@ -89,6 +89,7 @@ catalogueExport <- function (connectionDetails,
                       optimizeAtlasCache = FALSE) {
   
   achillesSql <- c()
+  catalogueSql <- c()
   
   # Log execution -----------------------------------------------------------------------------------------------------------------
   ParallelLogger::clearLoggers()
@@ -242,7 +243,7 @@ catalogueExport <- function (connectionDetails,
                            analysisDetails = analysisDetails)  
   }
   
-  # Create analysis table -------------------------------------------------------------
+  # Create analysis table ------------------------------------------------------------- 
   
   if (createTable) {
     analysesSqls <- apply(analysisDetails, 1, function(analysisDetail) {  
@@ -324,7 +325,26 @@ catalogueExport <- function (connectionDetails,
   achillesSql <- c(achillesSql, lapply(mainSqls, function(s) s$sql))
   
   # Get the additional Analsyses from CatalogueExport
-  # ToDo
+  
+  # mainSqls <- lapply(mainAnalysisIds, function(analysisId) {
+  #   list(analysisId = analysisId,
+  #        sql = .getCatalogueAnalysisSql(analysisId = analysisId,
+  #                                      connectionDetails = connectionDetails,
+  #                                      schemaDelim = schemaDelim,
+  #                                      scratchDatabaseSchema = scratchDatabaseSchema,
+  #                                      cdmDatabaseSchema = cdmDatabaseSchema,
+  #                                      resultsDatabaseSchema = resultsDatabaseSchema,
+  #                                      oracleTempSchema = oracleTempSchema,
+  #                                      cdmVersion = cdmVersion,
+  #                                      tempAchillesPrefix = tempPrefix,
+  #                                      resultsTables = resultsTables,
+  #                                      sourceName = sourceName,
+  #                                      numThreads = numThreads,
+  #                                      outputFolder = outputFolder)
+  #   )
+  # })
+  # 
+  # catalogueSql <- c(catalogueSql, lapply(mainSqls, function(s) s$sql))
   
   
   if (!sqlOnly) {
