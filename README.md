@@ -8,6 +8,15 @@ CatalogueExport exports a subset of the analysis generated with the **A**utomate
 
 CatalogueExport is actively being developed for CDM v5.x only.
 
+## Exported Analyses
+
+By default the following analyses are included in the export:
+
+   ```{r echo = FALSE, results = 'asis'}
+   library(knitr)
+   kable(mtcars[1:5, ], captiomn = "test")
+   ```
+
 ## Getting Started
 
 
