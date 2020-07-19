@@ -88,10 +88,11 @@ The `"cdm5_inst"` cdmDatabaseSchema parameter, `"results"` resultsDatabaseSchema
 
 The SQL platforms supported by [DatabaseConnector](https://github.com/OHDSI/DatabaseConnector) and [SqlRender](https://github.com/OHDSI/SqlRender) are the **only** ones supported here in Achilles as `dbms`. `cdmVersion` can be *ONLY* 5.x (please look at prior commit history for v4 support). If you do not specify the sourceName or cdmVersion they are read from the cdm_source table in the cdm. 
 
+The package contains a [CodeToRun.R](https://github.com/EHDEN/CatalogueExport/blob/master/extras/CodeToRun.R) file in the extra folder for convenience.
     
 ## Excuted Analyses
 
-The following analyses are included in the export by default: [Analyses](https://github.com/EHDEN/CatalogueExport/blob/master/inst/csv/analyses/catalogue_analyses_details.csv)
+The following analyses are included in the export by default: [Analyses](https://github.com/EHDEN/CatalogueExport/blob/master/inst/csv/analyses/catalogue_analysis_details.csv)
 
 If you like to view the parameterized sql that is executed for a specific analyses you can run the following command:
 
@@ -116,7 +117,7 @@ The output file created in you output folder can be uploaded in the EHDEN Databa
 
 **(Note: we will remove the inputs in the form. This will be added in the upload file automatically in the upcoming version)**
 
-All visualisations in the Database Dashboard and the Network Dashboards will now automaticall reflect the new characteristics of your database. Please rerun this procedure for every CDM update do the dashboard shows the latest version of your data.
+All visualisations in the Database Dashboard and the Network Dashboards will now automatically reflect the new characteristics of your database. Please rerun this procedure for every CDM update do the dashboard shows the latest version of your data.
 
 Support
 =======

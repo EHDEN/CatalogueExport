@@ -152,10 +152,6 @@ catalogueExport <- function (connectionDetails,
   analysisDetails <- getAnalysisDetails()
   costIds <- analysisDetails$ANALYSIS_ID[analysisDetails$COST == 1]
   
-  if (missing(analysisIds)) {
-    analysisIds = c(1, 2,3, 101, 102, 108, 110, 111, 112, 201, 501, 502, 405, 604, 705, 805, 1805, 2105, 401, 601, 701, 801, 1801, 2101, 2201, 200, 400, 600, 700, 800, 1800, 109, 506) #TODO put list in INST as csv file
-  }
-  
   if (!missing(analysisIds)) {
     analysisDetails <- analysisDetails[analysisDetails$ANALYSIS_ID %in% analysisIds, ]
   }
@@ -189,12 +185,12 @@ catalogueExport <- function (connectionDetails,
   resultsTables <- list(
     list(detailType = "results",
          tablePrefix = tempPrefix, 
-         schema = read.csv(file = system.file("csv", "schemas", "schema_achilles_results.csv", package = "Achilles"), 
+         schema = read.csv(file = system.file("csv", "schemas", "schema_catalogue_results.csv", package = "CatalogueExport"), 
                            header = TRUE),
          analysisIds = analysisDetails[analysisDetails$DISTRIBUTION <= 0, ]$ANALYSIS_ID),
     list(detailType = "results_dist",
          tablePrefix = sprintf("%1s_%2s", tempPrefix, "dist"),
-         schema = read.csv(file = system.file("csv", "schemas", "schema_achilles_results_dist.csv", package = "Achilles"), 
+         schema = read.csv(file = system.file("csv", "schemas", "schema_catalogue_results_dist.csv", package = "CatalogueExport"), 
                            header = TRUE),
          analysisIds = analysisDetails[abs(analysisDetails$DISTRIBUTION) == 1, ]$ANALYSIS_ID))
   
@@ -306,7 +302,7 @@ catalogueExport <- function (connectionDetails,
   # Get the Achilles Analysis
   mainSqls <- lapply(mainAnalysisIds, function(analysisId) {
     list(analysisId = analysisId,
-         sql = .getAchillesAnalysisSql(analysisId = analysisId,
+         sql = .getAnalysisSql(analysisId = analysisId,
                                connectionDetails = connectionDetails,
                                schemaDelim = schemaDelim,
                                scratchDatabaseSchema = scratchDatabaseSchema,
@@ -323,28 +319,6 @@ catalogueExport <- function (connectionDetails,
   })
   
   achillesSql <- c(achillesSql, lapply(mainSqls, function(s) s$sql))
-  
-  # Get the additional Analsyses from CatalogueExport
-  
-  # mainSqls <- lapply(mainAnalysisIds, function(analysisId) {
-  #   list(analysisId = analysisId,
-  #        sql = .getCatalogueAnalysisSql(analysisId = analysisId,
-  #                                      connectionDetails = connectionDetails,
-  #                                      schemaDelim = schemaDelim,
-  #                                      scratchDatabaseSchema = scratchDatabaseSchema,
-  #                                      cdmDatabaseSchema = cdmDatabaseSchema,
-  #                                      resultsDatabaseSchema = resultsDatabaseSchema,
-  #                                      oracleTempSchema = oracleTempSchema,
-  #                                      cdmVersion = cdmVersion,
-  #                                      tempAchillesPrefix = tempPrefix,
-  #                                      resultsTables = resultsTables,
-  #                                      sourceName = sourceName,
-  #                                      numThreads = numThreads,
-  #                                      outputFolder = outputFolder)
-  #   )
-  # })
-  # 
-  # catalogueSql <- c(catalogueSql, lapply(mainSqls, function(s) s$sql))
   
   
   if (!sqlOnly) {
@@ -707,9 +681,9 @@ getAnalysisDetails <- function() {
   read.csv( 
     system.file(
       "csv", 
-      "achilles", 
-      "achilles_analysis_details.csv", 
-      package = "Achilles"),
+      "analyses", 
+      "catalogue_analysis_details.csv", 
+      package = "CatalogueExport"),
     stringsAsFactors = FALSE
   )
 }
@@ -833,7 +807,7 @@ dropAllScratchTables <- function(connectionDetails,
   !(connectionDetails$dbms %in% c("bigquery"))
 }
 
-.getAchillesAnalysisSql <- function(analysisId, 
+.getAnalysisSql <- function(analysisId, 
                             connectionDetails,
                             schemaDelim,
                             scratchDatabaseSchema,
@@ -848,7 +822,7 @@ dropAllScratchTables <- function(connectionDetails,
                             outputFolder) {
   
   SqlRender::loadRenderTranslateSql(sqlFilename = file.path("analyses", paste(analysisId, "sql", sep = ".")),
-                                    packageName = "Achilles",
+                                    packageName = "CatalogueExport",
                                     dbms = connectionDetails$dbms,
                                     warnOnMissingParameters = FALSE,
                                     scratchDatabaseSchema = scratchDatabaseSchema,
@@ -858,7 +832,7 @@ dropAllScratchTables <- function(connectionDetails,
                                     tempAchillesPrefix = tempAchillesPrefix,
                                     oracleTempSchema = oracleTempSchema,
                                     source_name = sourceName,
-                                    achilles_version = packageVersion(pkg = "Achilles"),
+                                    achilles_version = packageVersion(pkg = "CatalogueExport"),
                                     cdmVersion = cdmVersion,
                                     singleThreaded = (scratchDatabaseSchema == "#"))
 }
