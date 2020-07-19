@@ -1,0 +1,20 @@
+#' Print the sql of an analysis
+#' 
+#' @details 
+#' Print the parameterized SQL that is run for an analysisId.
+#' 
+#' @return 
+#' None
+#' 
+#' @export
+printAnalysesSql<- function(analysisId){
+  
+  sql <- tryCatch({
+    sql = SqlRender::loadRenderTranslateSql( sqlFilename =  file.path("analyses", paste(analysisId, "sql", sep = ".")),
+                                            tdbms = connectionDetails$dbms, packageName = "Achilles")
+    cat(sql)
+  }, error = function (e) {
+    cat("analysisId does not exist ") 
+  }, finally = {
+  })
+}

@@ -71,13 +71,19 @@ The following analyses are included in the export by default: [Analyses](https:/
 
 Excluding analyses is not recommended but if necessary for governance rules you can specify the analyses to exclude using `exclude_analysis_id = c(1,3)` To Do
 
-If you like to view the sql that is executed for a specific analyses you can run the following command:
+If you like to view the parameterized sql that is executed for a specific analyses you can run the following command:
 
 ```r
-  showSql(analysisId = 100)
+  printAnalysisSql(analysisId = 101)
 ```
 
-In case you first want to check which sql is executed against the CDM you can set `sql_only = TRUE`. This will not execute anything but will create a sql file in your output folder.
+In case you first want to check all sql that is executed against the CDM you can set `sql_only = TRUE`. This will not execute anything but will create a sql file in your output folder.
+
+Support
+=======
+
+We use the <a href="https://github.com/EHDEN/CatalogieExport/issues">GitHub issue tracker</a> for all questions/comments/bugs/issues/enhancements.
+
 
 ## License
 
