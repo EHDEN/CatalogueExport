@@ -1,6 +1,6 @@
 CatalogueExport
 ===============
-Exports the data from the OMOP-CDM that is necessary for the EHDEN Data Catalogue
+Exports the data from the OMOP-CDM that is necessary for the EHDEN Database Catalogue
  
 Vignette: [Running CatalogueExport on Your CDM](https://github.com/EHDEN/CatalogueExport/raw/master/vignettes/RunningCatalogueExport.pdf) (To Add)
 
