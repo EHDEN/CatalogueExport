@@ -121,9 +121,10 @@ All visualisations in the Database Dashboard and the Network Dashboards will now
 
 Support
 =======
-
 We use the <a href="https://github.com/EHDEN/CatalogueExport/issues">GitHub issue tracker</a> for all questions/comments/bugs/issues/enhancements.
 
+## Project status: Beta
+The tool is currently under heavy developments and **should not be used yet**.
 
 ## License
 
