@@ -77,6 +77,7 @@ CatalogueExport is actively being developed for CDM v5.x only.
       vocabDatabaseSchema = "vocab",
       numThreads = 10,
       sourceName = "My Source Name", 
+      smallCellCount = 5,
       cdmVersion = "5.3.0")
     ```
 
