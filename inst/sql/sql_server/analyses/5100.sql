@@ -1,4 +1,4 @@
--- 900	Number of record occurrences and person counts per entity
+-- 5100	Number of record occurrences and person counts per entity
 
 SELECT
     q1.concept_id AS concept_id,
