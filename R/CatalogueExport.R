@@ -201,10 +201,10 @@ catalogueExport <- function (connectionDetails,
   if (numThreads == 1 || scratchDatabaseSchema == "#") {
     numThreads <- 1
     
-  #if (.supportsTempTables(connectionDetails)) {
-  #   scratchDatabaseSchema <- "#"
-  #   schemaDelim <- "s_"
-  #}
+  # if (.supportsTempTables(connectionDetails)) {
+  #    scratchDatabaseSchema <- "#"
+  #    schemaDelim <- "s_"
+  # }
     
     ParallelLogger::logInfo("Beginning single-threaded execution")
     
