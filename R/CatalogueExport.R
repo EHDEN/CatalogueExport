@@ -201,10 +201,10 @@ catalogueExport <- function (connectionDetails,
   if (numThreads == 1 || scratchDatabaseSchema == "#") {
     numThreads <- 1
     
-  if (.supportsTempTables(connectionDetails)) {
-     scratchDatabaseSchema <- "#"
-     schemaDelim <- "s_"
-  }
+  #if (.supportsTempTables(connectionDetails)) {
+  #   scratchDatabaseSchema <- "#"
+  #   schemaDelim <- "s_"
+  #}
     
     ParallelLogger::logInfo("Beginning single-threaded execution")
     
@@ -257,7 +257,7 @@ catalogueExport <- function (connectionDetails,
     })  
     
     sql <- SqlRender::loadRenderTranslateSql(sqlFilename = "analyses/create_analysis_table.sql", 
-                                             packageName = "Achilles", 
+                                             packageName = "CatalogueExport", 
                                              dbms = connectionDetails$dbms,
                                              warnOnMissingParameters = FALSE,
                                              resultsDatabaseSchema = resultsDatabaseSchema,
@@ -270,9 +270,18 @@ catalogueExport <- function (connectionDetails,
         # connection is already alive
         DatabaseConnector::executeSql(connection = connection, sql = sql)
       } else {
-        connection <- DatabaseConnector::connect(connectionDetails = connectionDetails)
-        DatabaseConnector::executeSql(connection = connection, sql = sql)
-        DatabaseConnector::disconnect(connection = connection)
+        
+        tryCatch({
+          connection <- DatabaseConnector::connect(connectionDetails = connectionDetails)
+          DatabaseConnector::executeSql(connection = connection, sql = sql, errorReportFile = file.path(outputFolder, "SqlError.txt"))
+        },
+        error = function (e) {
+          ParallelLogger::logError(paste0("Query was not executed successfully, see ",file.path(outputFolder,"SqlError.txt")," for more details"))
+        }, finally = {
+          DatabaseConnector::disconnect(connection = connection)
+          rm(connection)
+        })
+        
       }
     }
   }
@@ -827,6 +836,7 @@ dropAllScratchTables <- function(connectionDetails,
                                     warnOnMissingParameters = FALSE,
                                     scratchDatabaseSchema = scratchDatabaseSchema,
                                     cdmDatabaseSchema = cdmDatabaseSchema,
+                                    vocabDatabaseSchema = vocabDatabaseSchema,
                                     resultsDatabaseSchema = resultsDatabaseSchema,
                                     schemaDelim = schemaDelim,
                                     tempAchillesPrefix = tempAchillesPrefix,
