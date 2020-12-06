@@ -201,10 +201,10 @@ catalogueExport <- function (connectionDetails,
   if (numThreads == 1 || scratchDatabaseSchema == "#") {
     numThreads <- 1
     
-  # if (.supportsTempTables(connectionDetails)) {
-  #    scratchDatabaseSchema <- "#"
-  #    schemaDelim <- "s_"
-  # }
+  if (.supportsTempTables(connectionDetails)) {
+     scratchDatabaseSchema <- "#"
+     schemaDelim <- "s_"
+  }
     
     ParallelLogger::logInfo("Beginning single-threaded execution")
     
@@ -482,7 +482,8 @@ catalogueExport <- function (connectionDetails,
     SqlRender::writeSql(sql = paste(achillesSql, collapse = "\n\n"), targetFile = file.path(outputFolder, "catalogue_export.sql"))
     ParallelLogger::logInfo(sprintf("All Catalogue Export SQL scripts can be found in folder: %s", file.path(outputFolder, "catalogue_export.sql")))
   }
-  
+ 
+   
   # Export to csv  -----------------------------------------------------------------
   
   exportResultsToCSV(connectionDetails,

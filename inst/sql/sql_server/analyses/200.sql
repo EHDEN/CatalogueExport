@@ -4,8 +4,11 @@
 --HINT DISTRIBUTE_ON_KEY(stratum_1)
 select 200 as analysis_id, 
 	CAST(vo1.visit_concept_id AS VARCHAR(255)) as stratum_1,
-	cast(null as varchar(255)) as stratum_2, cast(null as varchar(255)) as stratum_3, cast(null as varchar(255)) as stratum_4, cast(null as varchar(255)) as stratum_5,
-	COUNT_BIG(distinct vo1.PERSON_ID) as count_value
+	cast(null as varchar(255)) as stratum_2,
+	cast(null as varchar(255)) as stratum_3,
+	cast(null as varchar(255)) as stratum_4,
+	cast(null as varchar(255)) as stratum_5,
+	floor((count_big(distinct vo1.PERSON_ID)+99)/100)*100 as count_value
 into @scratchDatabaseSchema@schemaDelim@tempAchillesPrefix_200
 from
 	@cdmDatabaseSchema.visit_occurrence vo1 inner join 

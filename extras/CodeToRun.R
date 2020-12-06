@@ -92,24 +92,21 @@ connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = dbms,
 oracleTempSchema <- NULL
 
 # Details specific to the database:
-databaseId <- "SynPuf"
-databaseName <- "Synthetic Public Use Files"
-databaseDescription <- "The CMS Linkable 2008–2010 Medicare DE-SynPUF originated from a disjoint (mutually exclusive from existing samples) 5% random sample of beneficiaries from the 100% Beneficiary Summary File for 2008."
-
+databaseId <- "IPCI"
+databaseName <- "Integrated Primary Care Information"
+databaseDescription <- "Dutch GP Database"
 
 # Details for connecting to the CDM and storing the results
 outputFolder <- file.path("~/Documents/Results", databaseId)
-cdmDatabaseSchema <- "synpuf"
-scratchDatabaseSchema <- "scratch"
+cdmDatabaseSchema <- "synpuf1000"
+cohortDatabaseSchema <- "scratch"
 resultsDatabaseSchema <- "prijnbeek"
-vocabDatabaseSchema = "synpuf"
+vocabDatabaseSchema = "synpuf1000"
 
 
 catalogueExport(connectionDetails, 
                 cdmDatabaseSchema = cdmDatabaseSchema, 
                 resultsDatabaseSchema = resultsDatabaseSchema,
                 vocabDatabaseSchema = vocabDatabaseSchema,
-                scratchDatabaseSchema = scratchDatabaseSchema,
                 sourceName = databaseName, 
-                cdmVersion = "5.3.0"
-                )
+                cdmVersion = "5.3.0")
