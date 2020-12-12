@@ -39,7 +39,7 @@ On SQL Server, this should specifiy both the database and the schema, so for exa
 
 \item{scratchDatabaseSchema}{Fully qualified name of the database schema that will store all of the intermediate scratch tables, so for example, on SQL Server, 'cdm_scratch.dbo'. 
 Must be accessible to/from the cdmDatabaseSchema and the resultsDatabaseSchema. Default is resultsDatabaseSchema. 
-Making this "#" will run Achilles in single-threaded mode and use temporary tables instead of permanent tables.}
+Making this "#" will run CatalogueExport in single-threaded mode and use temporary tables instead of permanent tables.}
 
 \item{vocabDatabaseSchema}{String name of database schema that contains OMOP Vocabulary. Default is cdmDatabaseSchema. On SQL Server, this should specifiy both the database and the schema, so for example 'results.dbo'.}
 
@@ -47,8 +47,8 @@ Making this "#" will run Achilles in single-threaded mode and use temporary tabl
 
 \item{sourceName}{String name of the data source name. If blank, CDM_SOURCE table will be queried to try to obtain this.}
 
-\item{analysisIds}{(OPTIONAL) A vector containing the set of Achilles analysisIds for which results will be generated. 
-If not specified, all analyses will be executed. Use \code{\link{getAnalysisDetails}} to get a list of all Achilles analyses and their Ids.}
+\item{analysisIds}{(OPTIONAL) A vector containing the set of CatalogueExport analysisIds for which results will be generated. 
+If not specified, all analyses will be executed. Use \code{\link{getAnalysisDetails}} to get a list of all CatalogueExport analyses and their Ids.}
 
 \item{createTable}{If true, new results tables will be created in the results schema. If not, the tables are assumed to already exist, and analysis results will be inserted (slower on MPP).}
 
@@ -58,22 +58,22 @@ If not specified, all analyses will be executed. Use \code{\link{getAnalysisDeta
 
 \item{validateSchema}{Boolean to determine if CDM Schema Validation should be run. Default = FALSE}
 
-\item{createIndices}{Boolean to determine if indices should be created on the resulting Achilles tables. Default= TRUE}
+\item{createIndices}{Boolean to determine if indices should be created on the resulting CatalogueExport tables. Default= TRUE}
 
-\item{numThreads}{(OPTIONAL, multi-threaded mode) The number of threads to use to run Achilles in parallel. Default is 1 thread.}
+\item{numThreads}{(OPTIONAL, multi-threaded mode) The number of threads to use to run CatalogueExport in parallel. Default is 1 thread.}
 
-\item{tempPrefix}{(OPTIONAL, multi-threaded mode) The prefix to use for the scratch Achilles analyses tables. Default is "tmpach"}
+\item{tempPrefix}{(OPTIONAL, multi-threaded mode) The prefix to use for the scratch CatalogueExport analyses tables. Default is "tmpach"}
 
 \item{dropScratchTables}{(OPTIONAL, multi-threaded mode) TRUE = drop the scratch tables (may take time depending on dbms), FALSE = leave them in place for later removal.}
 
-\item{sqlOnly}{Boolean to determine if Achilles should be fully executed. TRUE = just generate SQL files, don't actually run, FALSE = run Achilles}
+\item{sqlOnly}{Boolean to determine if CatalogueExport should be fully executed. TRUE = just generate SQL files, don't actually run, FALSE = run CatalogueExport}
 
 \item{outputFolder}{Path to store logs and SQL files}
 
 \item{verboseMode}{Boolean to determine if the console will show all execution steps. Default = TRUE}
 }
 \value{
-An object of type \code{achillesResults} containing details for connecting to the database containing the results
+An object of type \code{catalogueResults} containing details for connecting to the database containing the results
 }
 \description{
 \code{CatalogueExport} exports a set of  descriptive statistics summary from the CDM, to be uploaded in the Database Catalogue.
@@ -82,16 +82,16 @@ An object of type \code{achillesResults} containing details for connecting to th
 \code{CatalogueExport} exports a set of  descriptive statistics summary from the CDM, to be uploaded in the Database Catalogue.
 }
 \examples{
-                              \dontrun{
-                                          connectionDetails <- createConnectionDetails(dbms="sql server", server="some_server")
-                                          achillesResults <- achilles(connectionDetails = connectionDetails, 
-                                            cdmDatabaseSchema = "cdm", 
-                                            resultsDatabaseSchema="results", 
-                                            scratchDatabaseSchema="scratch",
-                                            sourceName="Some Source", 
-                                            cdmVersion = "5.3", 
-                                            runCostAnalysis = TRUE, 
-                                            numThreads = 10,
-                                            outputFolder = "output")
-                                        }
+                              
+\dontrun{
+connectionDetails <- createConnectionDetails(dbms="sql server", server="some_server")
+results <- achilles(connectionDetails = connectionDetails, 
+                    cdmDatabaseSchema = "cdm", 
+                    resultsDatabaseSchema="results", 
+                    scratchDatabaseSchema="scratch",
+                    sourceName="Some Source", 
+                    cdmVersion = "5.3", 
+                    numThreads = 10,
+                    outputFolder = "output")
+}
 }

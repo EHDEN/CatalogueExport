@@ -2,7 +2,6 @@
 
 export(catalogueExport)
 export(createIndices)
-export(dropAllScratchTables)
 export(exportResultsToCSV)
 export(getAnalysisDetails)
 export(printAnalysesSql)

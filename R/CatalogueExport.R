@@ -1,8 +1,8 @@
-# @file Achilles
+# @file CatalogueExport
 #
 # Copyright 2020 European Health Data and Evidence Network (EHDEN)
 #
-# This file is part of CatalogueExport
+# This file is part of CatalogueExport and is based on OHDSI's Achilles
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,36 +35,36 @@
 #'                                         On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_results.dbo'.
 #' @param scratchDatabaseSchema            Fully qualified name of the database schema that will store all of the intermediate scratch tables, so for example, on SQL Server, 'cdm_scratch.dbo'. 
 #'                                         Must be accessible to/from the cdmDatabaseSchema and the resultsDatabaseSchema. Default is resultsDatabaseSchema. 
-#'                                         Making this "#" will run Achilles in single-threaded mode and use temporary tables instead of permanent tables.
+#'                                         Making this "#" will run CatalogueExport in single-threaded mode and use temporary tables instead of permanent tables.
 #' @param vocabDatabaseSchema		           String name of database schema that contains OMOP Vocabulary. Default is cdmDatabaseSchema. On SQL Server, this should specifiy both the database and the schema, so for example 'results.dbo'.
 #' @param oracleTempSchema                 For Oracle only: the name of the database schema where you want all temporary tables to be managed. Requires create/insert permissions to this database. 
 #' @param sourceName		                   String name of the data source name. If blank, CDM_SOURCE table will be queried to try to obtain this.
-#' @param analysisIds		                   (OPTIONAL) A vector containing the set of Achilles analysisIds for which results will be generated. 
-#'                                         If not specified, all analyses will be executed. Use \code{\link{getAnalysisDetails}} to get a list of all Achilles analyses and their Ids.
+#' @param analysisIds		                   (OPTIONAL) A vector containing the set of CatalogueExport analysisIds for which results will be generated. 
+#'                                         If not specified, all analyses will be executed. Use \code{\link{getAnalysisDetails}} to get a list of all CatalogueExport analyses and their Ids.
 #' @param createTable                      If true, new results tables will be created in the results schema. If not, the tables are assumed to already exist, and analysis results will be inserted (slower on MPP).
 #' @param smallCellCount                   To avoid patient identifiability, cells with small counts (<= smallCellCount) are deleted. Set to NULL if you don't want any deletions.
 #' @param cdmVersion                       Define the OMOP CDM version used:  currently supports v5 and above. Use major release number or minor number only (e.g. 5, 5.3)
 #' @param validateSchema                   Boolean to determine if CDM Schema Validation should be run. Default = FALSE
-#' @param createIndices                    Boolean to determine if indices should be created on the resulting Achilles tables. Default= TRUE
-#' @param numThreads                       (OPTIONAL, multi-threaded mode) The number of threads to use to run Achilles in parallel. Default is 1 thread.
-#' @param tempPrefix               (OPTIONAL, multi-threaded mode) The prefix to use for the scratch Achilles analyses tables. Default is "tmpach"
+#' @param createIndices                    Boolean to determine if indices should be created on the resulting CatalogueExport tables. Default= TRUE
+#' @param numThreads                       (OPTIONAL, multi-threaded mode) The number of threads to use to run CatalogueExport in parallel. Default is 1 thread.
+#' @param tempPrefix               (OPTIONAL, multi-threaded mode) The prefix to use for the scratch CatalogueExport analyses tables. Default is "tmpach"
 #' @param dropScratchTables                (OPTIONAL, multi-threaded mode) TRUE = drop the scratch tables (may take time depending on dbms), FALSE = leave them in place for later removal.
-#' @param sqlOnly                          Boolean to determine if Achilles should be fully executed. TRUE = just generate SQL files, don't actually run, FALSE = run Achilles
+#' @param sqlOnly                          Boolean to determine if CatalogueExport should be fully executed. TRUE = just generate SQL files, don't actually run, FALSE = run CatalogueExport
 #' @param outputFolder                     Path to store logs and SQL files
 #' @param verboseMode                      Boolean to determine if the console will show all execution steps. Default = TRUE
-#' @return                                 An object of type \code{achillesResults} containing details for connecting to the database containing the results 
-#' @examples                               \dontrun{
-#'                                           connectionDetails <- createConnectionDetails(dbms="sql server", server="some_server")
-#'                                           achillesResults <- achilles(connectionDetails = connectionDetails, 
-#'                                             cdmDatabaseSchema = "cdm", 
-#'                                             resultsDatabaseSchema="results", 
-#'                                             scratchDatabaseSchema="scratch",
-#'                                             sourceName="Some Source", 
-#'                                             cdmVersion = "5.3", 
-#'                                             runCostAnalysis = TRUE, 
-#'                                             numThreads = 10,
-#'                                             outputFolder = "output")
-#'                                         }
+#' @return                                 An object of type \code{catalogueResults} containing details for connecting to the database containing the results 
+#' @examples                               
+#' \dontrun{
+#' connectionDetails <- createConnectionDetails(dbms="sql server", server="some_server")
+#' results <- achilles(connectionDetails = connectionDetails, 
+#'                     cdmDatabaseSchema = "cdm", 
+#'                     resultsDatabaseSchema="results", 
+#'                     scratchDatabaseSchema="scratch",
+#'                     sourceName="Some Source", 
+#'                     cdmVersion = "5.3", 
+#'                     numThreads = 10,
+#'                     outputFolder = "output")
+#' }
 #' @export
 catalogueExport <- function (connectionDetails, 
                       cdmDatabaseSchema,
@@ -228,7 +228,7 @@ catalogueExport <- function (connectionDetails,
       " You may install it using devtools with the following code:",
       "\n    devtools::install_github('OHDSI/ParallelLogger')",
       "\n\nAlternately, you might want to install ALL suggested packages using:",
-      "\n    devtools::install_github('OHDSI/Achilles', dependencies = TRUE)",
+      "\n    devtools::install_github('EHDEN/CatalogueExport', dependencies = TRUE)",
       call. = FALSE
     ) 
   } else {
@@ -318,7 +318,7 @@ catalogueExport <- function (connectionDetails,
   
   mainAnalysisIds <- analysisDetails$ANALYSIS_ID
 
-  # Get the Achilles Analysis
+  # Get the CatalogueExport Analysis
   mainSqls <- lapply(mainAnalysisIds, function(analysisId) {
     list(analysisId = analysisId,
          sql = .getAnalysisSql(analysisId = analysisId,
@@ -511,7 +511,7 @@ catalogueExport <- function (connectionDetails,
   
   catalogueResults <- list(resultsConnectionDetails = connectionDetails,
                           resultsTable = "catalogue_results",
-                          resultsDistributionTable = "achilles_results_dist",
+                          resultsDistributionTable = "catalogue_results_dist",
                           analysis_table = "catalogue_analysis",
                           sourceName = sourceName,
                           analysisIds = analysisDetails$ANALYSIS_ID,
@@ -536,7 +536,7 @@ catalogueExport <- function (connectionDetails,
 #' @param outputFolder                     Path to store logs and SQL files
 #' @param sqlOnly                          TRUE = just generate SQL files, don't actually run, FALSE = run Achilles
 #' @param verboseMode                      Boolean to determine if the console will show all execution steps. Default = TRUE 
-#' @param catalogueTables                   Which achilles tables should be indexed? Default is both achilles_results and achilles_results_dist. 
+#' @param catalogueTables                  Which CatalogueExport tables should be indexed? Default is both catalogue_results and catalogue_results_dist. 
 #' 
 #' @export
 createIndices <- function(connectionDetails,
@@ -628,7 +628,7 @@ createIndices <- function(connectionDetails,
 #' @param cdmVersion                       Define the OMOP CDM version used:  currently supports v5 and above. Use major release number or minor number only (e.g. 5, 5.3)
 #' @param runCostAnalysis                  Boolean to determine if cost analysis should be run. Note: only works on CDM v5 and v5.1.0+ style cost tables.
 #' @param outputFolder                     Path to store logs and SQL files
-#' @param sqlOnly                          TRUE = just generate SQL files, don't actually run, FALSE = run Achilles
+#' @param sqlOnly                          TRUE = just generate SQL files, don't actually run, FALSE = run 
 #' @param verboseMode                      Boolean to determine if the console will show all execution steps. Default = TRUE  
 #' 
 #' @export
@@ -711,18 +711,17 @@ getAnalysisDetails <- function() {
 #' Drop all possible scratch tables
 #' 
 #' @details 
-#' Drop all possible Achilles and Heel scratch tables
+#' Drop all possible CatalogueExport scratch tables
 #' 
 #' @param connectionDetails                An R object of type \code{connectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.
-#' @param scratchDatabaseSchema            string name of database schema that Achilles scratch tables were written to. 
-#' @param tempPrefix               The prefix to use for the "temporary" (but actually permanent) Achilles analyses tables. Default is "tmpach"
+#' @param scratchDatabaseSchema            string name of database schema that CatalogueExport scratch tables were written to. 
+#' @param tempPrefix               The prefix to use for the "temporary" (but actually permanent) CatalogueExport analyses tables. Default is "tmpach"
 #' @param tempHeelPrefix                   The prefix to use for the "temporary" (but actually permanent) Heel tables. Default is "tmpheel"
 #' @param numThreads                       The number of threads to use to run this function. Default is 1 thread.
 #' @param tableTypes                       The types of scratch tables to drop: catalogueExport
 #' @param outputFolder                     Path to store logs and SQL files
 #' @param verboseMode                      Boolean to determine if the console will show all execution steps. Default = TRUE  
 #' 
-#' @export
 dropAllScratchTables <- function(connectionDetails, 
                                  scratchDatabaseSchema, 
                                  tempPrefix = "tmpach", 
@@ -763,7 +762,7 @@ dropAllScratchTables <- function(connectionDetails,
   
   if ("catalogueExport" %in% tableTypes) {
     
-    # Drop Achilles Scratch Tables ------------------------------------------------------
+    # Drop CatalogueExport Scratch Tables ------------------------------------------------------
     
     analysisDetails <- getAnalysisDetails()
     
@@ -791,7 +790,7 @@ dropAllScratchTables <- function(connectionDetails,
                                             tryCatch({
                                               DatabaseConnector::executeSql(connection = connection, sql = sql)  
                                             }, error = function(e) {
-                                              ParallelLogger::logError(sprintf("Drop Achilles Scratch Table -- ERROR (%s)", e))  
+                                              ParallelLogger::logError(sprintf("Drop CatalogueExport Scratch Table -- ERROR (%s)", e))  
                                             }, finally = {
                                               DatabaseConnector::disconnect(connection = connection)
                                             })

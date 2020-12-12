@@ -17,9 +17,9 @@ dropAllScratchTables(
 \arguments{
 \item{connectionDetails}{An R object of type \code{connectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.}
 
-\item{scratchDatabaseSchema}{string name of database schema that Achilles scratch tables were written to.}
+\item{scratchDatabaseSchema}{string name of database schema that CatalogueExport scratch tables were written to.}
 
-\item{tempPrefix}{The prefix to use for the "temporary" (but actually permanent) Achilles analyses tables. Default is "tmpach"}
+\item{tempPrefix}{The prefix to use for the "temporary" (but actually permanent) CatalogueExport analyses tables. Default is "tmpach"}
 
 \item{numThreads}{The number of threads to use to run this function. Default is 1 thread.}
 
@@ -35,5 +35,5 @@ dropAllScratchTables(
 Drop all possible scratch tables
 }
 \details{
-Drop all possible Achilles and Heel scratch tables
+Drop all possible CatalogueExport scratch tables
 }

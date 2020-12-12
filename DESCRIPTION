@@ -1,6 +1,6 @@
 Package: CatalogueExport
 Type: Package
-Title: Exports Descriptive Statistics Summary for the EHDEN Database Catalogie
+Title: Exports Descriptive Statistics Summary for the EHDEN Database Catalogue
 Version: 0.0.1
 Date: 2020-07-18
 Authors@R: c(
