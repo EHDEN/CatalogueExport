@@ -4,10 +4,12 @@ Exports the data from the OMOP-CDM that is necessary for the EHDEN Database Cata
  
 Vignette: [Running CatalogueExport on Your CDM](https://github.com/EHDEN/CatalogueExport/raw/master/vignettes/RunningCatalogueExport.pdf) (To Add)
 
-CatalogueExport exports a subset of the analysis generated with the **A**utomated **C**haracterization of **H**ealth **I**nformation at **L**arge-scale **L**ongitudinal **E**vidence **S**ystems ([Achilles](https://github,com/OHDSI/Achilles)) R-package to a comma-seperated files format that can be loaded in the EHDEN Database Catalogue. The results are visualized in the Database Dashboard and Network level visualizations.
+CatalogueExport exports a subset of the analysis generated with the **A**utomated **C**haracterization of **H**ealth **I**nformation at **L**arge-scale **L**ongitudinal **E**vidence **S**ystems ([Achilles](https://github,com/OHDSI/Achilles)) R-package to a comma-seperated files format that can be loaded in the EHDEN Database Catalogue. 
+The results are visualized in the Database Dashboard and Network level visualizations.
+
+**Note that in CatalogueExport no exact counts for concept_ids are exported but these are rounded up to the nearest 100 and will therefore only be an approximation which is enough for univariate feasibility assessments in the catalogue.**
 
 CatalogueExport is actively being developed for CDM v5.x only.
-
 
 ## Getting Started
 
@@ -116,16 +118,14 @@ The output file created in you output folder can be uploaded in the EHDEN Databa
 </td>
 </table>
 
-**(Note: we will remove the inputs in the form. This will be added in the upload file automatically in the upcoming version)**
-
-All visualisations in the Database Dashboard and the Network Dashboards will now automatically reflect the new characteristics of your database. Please rerun this procedure for every CDM update do the dashboard shows the latest version of your data.
+All visualisations in the Database Dashboard and the Network Dashboards will now automatically reflect the new characteristics of your database. Please rerun this procedure for every CDM update so the dashboard shows the latest version of your data.
 
 Support
 =======
 We use the <a href="https://github.com/EHDEN/CatalogueExport/issues">GitHub issue tracker</a> for all questions/comments/bugs/issues/enhancements.
 
 ## Project status: Beta
-The tool is currently under heavy developments and **should not be used yet**.
+The tool is currently under development and **should not be used yet**.
 
 ## License
 
