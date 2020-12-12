@@ -325,7 +325,6 @@ catalogueExport <- function (connectionDetails,
                                resultsTables = resultsTables,
                                sourceName = sourceName,
                                numThreads = numThreads,
-                               packageVersion = packageVersion('CatalogueExport'),
                                outputFolder = outputFolder)
     )
   })
@@ -846,7 +845,7 @@ dropAllScratchTables <- function(connectionDetails,
                                     tempAchillesPrefix = tempAchillesPrefix,
                                     oracleTempSchema = oracleTempSchema,
                                     source_name = sourceName,
-                                    achilles_version = packageVersion(pkg = "CatalogueExport"),
+                                    package_version = packageVersion(pkg = "CatalogueExport"),
                                     cdmVersion = cdmVersion,
                                     singleThreaded = (scratchDatabaseSchema == "#"))
 }
