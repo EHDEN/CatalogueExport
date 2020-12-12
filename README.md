@@ -7,7 +7,7 @@ Vignette: [Running CatalogueExport on Your CDM](https://github.com/EHDEN/Catalog
 CatalogueExport exports a subset of the analysis generated with the **A**utomated **C**haracterization of **H**ealth **I**nformation at **L**arge-scale **L**ongitudinal **E**vidence **S**ystems ([Achilles](https://github,com/OHDSI/Achilles)) R-package to a comma-seperated files format that can be loaded in the EHDEN Database Catalogue. 
 The results are visualized in the Database Dashboard and Network level visualizations.
 
-**Note that in CatalogueExport no exact counts for concept_ids are exported but these are rounded up to the nearest 100 and will therefore only be an approximation which is enough for univariate feasibility assessments in the catalogue.**
+**Note that in CatalogueExport no exact counts for concept_ids are exported but these are rounded up to the nearest multiple of 100 and will therefore only be an approximation which is enough for univariate feasibility assessments in the catalogue.**
 
 CatalogueExport is actively being developed for CDM v5.x only.
 

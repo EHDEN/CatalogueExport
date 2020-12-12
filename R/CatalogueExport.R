@@ -120,8 +120,16 @@ catalogueExport <- function (connectionDetails,
   # Check CDM version is valid ---------------------------------------------------------------------------------------------------
   
   if (compareVersion(a = as.character(cdmVersion), b = "5") < 0) {
-    stop("Error: Invalid CDM Version number; this function is only for v5 and above.")
+    stop("Error: Invalid CDM Version number; this function is only for v5 and above. Check the cdm_source table!")
   }
+  
+  # Check the vocabulary version is available from cdm_source
+  
+  vocabularyVersion <- .getVocabularyVersion(connectionDetails, cdmDatabaseSchema)
+  if (is.null(vocabularyVersion)) {
+    stop("Error: The vocabulary version needs to be available in the cdm_source table")
+  }
+  
   
   # Establish folder paths --------------------------------------------------------------------------------------------------------
   
@@ -811,6 +819,25 @@ dropAllScratchTables <- function(connectionDetails,
   })
   
   cdmVersion
+}
+
+.getVocabularyVersion <- function(connectionDetails, 
+                           cdmDatabaseSchema) {
+  sql <- SqlRender::render(sql = "select vocabulary_version from @cdmDatabaseSchema.cdm_source",
+                           cdmDatabaseSchema = cdmDatabaseSchema)
+  sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms)
+  connection <- DatabaseConnector::connect(connectionDetails = connectionDetails)
+  vocabularyVersion <- tryCatch({
+    c <- tolower((DatabaseConnector::querySql(connection = connection, sql = sql))[1,])
+    gsub(pattern = "v", replacement = "", x = c)
+  }, error = function (e) {
+    ""
+  }, finally = {
+    DatabaseConnector::disconnect(connection = connection)
+    rm(connection)
+  })
+  
+  vocabularyVersion
 }
 
 .supportsTempTables <- function(connectionDetails) {
