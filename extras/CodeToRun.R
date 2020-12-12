@@ -80,13 +80,12 @@ connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = dbms,
                                                                 password = password,
                                                                 port = port)
 
-# Azure connection
-connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = dbms,
-                                                                server = server,
-                                                                user = user,
-                                                                password = password,
-                                                                connectionString = connectionString )
-#conn <- DatabaseConnector::connect(dbms = dbms,connectionDetails = connectionDetails)
+# Or use the connectionString is provided.
+# connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = dbms,
+#                                                                 server = server,
+#                                                                 user = user,
+#                                                                 password = password,
+#                                                                 connectionString = connectionString )
 
 # For Oracle: define a schema that can be used to emulate temp tables:
 oracleTempSchema <- NULL
