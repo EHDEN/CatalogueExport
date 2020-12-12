@@ -108,6 +108,8 @@ catalogueExport <- function (connectionDetails,
                                          threshold = "INFO",
                                          appenders = appenders)
   ParallelLogger::registerLogger(logger) 
+  ParallelLogger::logInfo(paste0("Running on server: ", connectionDetails$server," on schema ",cdmDatabaseSchema))
+  ParallelLogger::logInfo(paste0("Results are stored in schema: ", resultsDatabaseSchema))
   
   # Try to get CDM Version if not provided ----------------------------------------------------------------------------------------
   
@@ -870,7 +872,7 @@ dropAllScratchTables <- function(connectionDetails,
                                     tempAchillesPrefix = tempAchillesPrefix,
                                     oracleTempSchema = oracleTempSchema,
                                     source_name = sourceName,
-                                    achilles_version = packageVersion(pkg = "CatalogueExport"),
+                                    package_version = packageVersion(pkg = "CatalogueExport"),
                                     cdmVersion = cdmVersion,
                                     singleThreaded = (scratchDatabaseSchema == "#"))
 }
