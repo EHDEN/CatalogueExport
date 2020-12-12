@@ -227,7 +227,7 @@ All visualisations in the Database Dashboard and the Network Dashboards will now
 
 # Acknowledgments
 
-Considerable part of this work has been used from the `Achilles` package.
+Considerable part of this work is based on the work done for the `Achilles` package.
 
 ```{r tidy = TRUE, eval = TRUE}
 citation("Achilles")
