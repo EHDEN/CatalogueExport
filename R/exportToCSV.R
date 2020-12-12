@@ -3,7 +3,7 @@ exportResultsToCSV <- function(connectionDetails,
                                resultsDatabaseSchema,
                                analysisIds = c(),
                                minCellCount = 5,
-                               exportFolder) {
+                               exportFolder ="./output") {
   # Ensure the export folder exists
   if (!file.exists(exportFolder)) {
     dir.create(exportFolder, recursive = TRUE)

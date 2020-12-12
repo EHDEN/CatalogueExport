@@ -323,6 +323,7 @@ catalogueExport <- function (connectionDetails,
                                resultsTables = resultsTables,
                                sourceName = sourceName,
                                numThreads = numThreads,
+                               packageVersion = packageVersion('CatalogueExport'),
                                outputFolder = outputFolder)
     )
   })
