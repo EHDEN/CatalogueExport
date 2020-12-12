@@ -2,8 +2,6 @@ CatalogueExport
 ===============
 Exports the data from the OMOP-CDM that is necessary for the EHDEN Database Catalogue
  
-Vignette: [Running CatalogueExport on Your CDM](https://github.com/EHDEN/CatalogueExport/raw/master/vignettes/RunningCatalogueExport.pdf) (To Add)
-
 CatalogueExport exports a subset of the analysis generated with the **A**utomated **C**haracterization of **H**ealth **I**nformation at **L**arge-scale **L**ongitudinal **E**vidence **S**ystems ([Achilles](https://github,com/OHDSI/Achilles)) R-package to a comma-seperated files format that can be loaded in the EHDEN Database Catalogue. 
 The results are visualized in the Database Dashboard and Network level visualizations.
 
@@ -123,6 +121,8 @@ All visualisations in the Database Dashboard and the Network Dashboards will now
 Support
 =======
 We use the <a href="https://github.com/EHDEN/CatalogueExport/issues">GitHub issue tracker</a> for all questions/comments/bugs/issues/enhancements.
+
+[Package Manual](https://github.com/EHDEN/CatalogueExport/raw/master/extras/CatalogueExport.pdf)
 
 ## Project status: Beta
 The tool is currently under development and **should not be used yet**.
