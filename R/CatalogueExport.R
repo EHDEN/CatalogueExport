@@ -722,6 +722,7 @@ getAnalysisDetails <- function() {
 #' @param outputFolder                     Path to store logs and SQL files
 #' @param verboseMode                      Boolean to determine if the console will show all execution steps. Default = TRUE  
 #' 
+#' @export
 dropAllScratchTables <- function(connectionDetails, 
                                  scratchDatabaseSchema, 
                                  tempPrefix = "tmpach", 

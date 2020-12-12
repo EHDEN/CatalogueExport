@@ -20,9 +20,9 @@
 # @author Peter Rijnbeek
 
 # Manually delete package from library. Avoids "Already in use" message when rebuilding
-unloadNamespace("CatalogueeExport")
+unloadNamespace("CatalogueExport")
 .rs.restartR()
-folder <- system.file(package = "CatalogueeExport")
+folder <- system.file(package = "CatalogueExport")
 folder
 unlink(folder, recursive = TRUE, force = TRUE)
 file.exists(folder)
@@ -37,3 +37,9 @@ devtools::spell_check()
 # Create manual and vignettes:
 unlink("extras/CatalogueExport.pdf")
 system("R CMD Rd2pdf ./ --output=extras/CatalogueExport.pdf")
+
+rmarkdown::render("vignettes/RunningCatalogueExport.Rmd",
+                  output_file = "../inst/doc/runningCatalogueExport.pdf",
+                  rmarkdown::pdf_document(latex_engine = "pdflatex",
+                                          toc = TRUE, toc_depth = 3,
+                                          number_sections = TRUE))

@@ -1,8 +1,8 @@
 Package: CatalogueExport
 Type: Package
 Title: Exports Descriptive Statistics Summary for the EHDEN Database Catalogue
-Version: 0.0.1
-Date: 2020-07-18
+Version: 1.0
+Date: 2020-12-12
 Authors@R: c(
   person("Peter", "Rijnbeek", email = "p.rijnbeek@erasmusmc.nl", role = c("aut", "cre")),
   person("Patrick", "Ryan", email = "ryan@ohdsi.org", role = c("aut")),

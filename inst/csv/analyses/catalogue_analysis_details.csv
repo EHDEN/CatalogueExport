@@ -1,5 +1,5 @@
 ANALYSIS_ID,DISTRIBUTION,COST,DISTRIBUTED_FIELD,ANALYSIS_NAME,STRATUM_1_NAME,STRATUM_2_NAME,STRATUM_3_NAME,STRATUM_4_NAME,STRATUM_5_NAME
-0,-1,0,,Source name,,,,,
+0,0,0,,Source name,,,,,
 1,0,0,,Number of persons,,,,,
 2,0,0,,Number of persons by gender,gender_concept_id,,,,
 3,0,0,,Number of persons by year of birth,year_of_birth,,,,

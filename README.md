@@ -1,11 +1,12 @@
 CatalogueExport
 ===============
 Exports the data from the OMOP-CDM that is necessary for the EHDEN Database Catalogue
- 
-CatalogueExport exports a subset of the analysis generated with the **A**utomated **C**haracterization of **H**ealth **I**nformation at **L**arge-scale **L**ongitudinal **E**vidence **S**ystems ([Achilles](https://github,com/OHDSI/Achilles)) R-package to a comma-seperated files format that can be loaded in the EHDEN Database Catalogue. 
-The results are visualized in the Database Dashboard and Network level visualizations.
 
-**Note that in CatalogueExport no exact counts for concept_ids are exported but these are rounded up to the nearest multiple of 100 and will therefore only be an approximation which is enough for univariate feasibility assessments in the catalogue.**
+The vignette of the package can be downloaded [here]([https://github.com/EHDEN/CatalogueExport/raw/master/inst/doc/runningCatalogueExport.pdf).
+ 
+CatalogueExport exports a subset of the analysis developed in the **A**utomated **C**haracterization of **H**ealth **I**nformation at **L**arge-scale **L**ongitudinal **E**vidence **S**ystems ([Achilles](https://github,com/OHDSI/Achilles)) R-package to a comma-seperated files format that can be loaded in the EHDEN Database Catalogue. The results are visualized in the Database Dashboard and Network level visualizations.
+
+**Note that in CatalogueExport no exact counts for concept_ids are exported but these are rounded up to the nearest multiple of 100 and will therefore only be an approximation which is enough for univariate feasibility assessments in the catalogue. This means that this package will not re-use results from Achilles.**
 
 CatalogueExport is actively being developed for CDM v5.x only.
 
@@ -112,7 +113,7 @@ The output file created in you output folder can be uploaded in the EHDEN Databa
 <table>
 <tr valign="bottom">
 <td width = 50%>
-<img src="https://github.com/EHDEN/CatalogueExport/raw/master/extras/upload.png"/>
+<img src="https://github.com/EHDEN/CatalogueExport/raw/master/inst/doc/upload.png"/>
 </td>
 </table>
 

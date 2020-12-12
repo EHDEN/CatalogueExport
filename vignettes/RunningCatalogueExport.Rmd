@@ -25,7 +25,215 @@ knitr::opts_chunk$set(
 ```
 
 # Introduction
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+
+In this vignette we cover how to run the CatlogueExport package on your Common Data Model (CDM) database in order to characterize the dataset and create a result file that can be uploaded in the [EHDEN Catalogue](https://portal.ehden.eu). It is a requirement for all EHDEN sites to run CatalogueExport on their CDM datasets to ensure researchers can evaluate study feasibility and contextualize study results.
+
+# General Approach
+
+The CatalogueExport package consists of:
+
+1. The **catalogueExport** function runs a set of SQL scripts to characterize the domains and concepts of the CDM. 
+3. The **createIndices** function creates table indices for the achilles tables, which can help improve query performance.
+4. The **validateSchema** function compares your CDM schema against the OMOP CDM specification.
+5. The **getAnalysisDetails** function provides descriptions about the full set of Achilles analyses.
+6. The **dropAllScratchTables** function is useful only for multi-threaded mode. It can clear any leftover staging tables.
+
+
+## SQL Only Mode
+
+In most functions, you can specify `sqlOnly = TRUE` in order to produce the SQL without executing it, which can be useful if you'd like to examine the SQL closely or debug something. The SQL files are stored in the `outputFolder`.
+
+## Logging
+
+File and console logging is enabled across most functions. The status of each step is logged into files in the `outputFolder`. You can review the files in a common text editor, or use the Shiny Application from the `ParallelLogger` package to view them more interactively.
+
+```{r tidy = FALSE, eval = FALSE}
+ParallelLogger::launchLogViewer(logFileName = "output/log_catalogueExport.txt")
 ```
-To Do
+
+```{r echo = FALSE}
+knitr::include_graphics(path = "../inst/doc/logging_screenshot.png")
+```
+
+## Verbose Mode
+
+The `verboseMode` parameter can be set to FALSE if you'd like less details about the function execution to appear in the console. Either way, all details are written to the log files. By default, this is set to TRUE.
+
+## Preparation for running CatalogueExport
+
+In order to run the package, you will need to determine if you'd like the tables and staging tables to be stored in schemas that are separate from your CDM's schema (recommended), or within the same schema as the CDM. 
+
+### Multi-Threaded vs Single-Threaded
+
+As most of the queries can run independently, we have added a multi-threaded mode to allow for more than 1 SQL script to execute at a time. This is particularly useful for massively parallel processing (MPP) platforms such as Amazon Redshift and Microsoft PDW. It may not be beneficial for traditional SQL platforms, so only use the multi-threaded mode if confident it can be useful.
+
+Further, while multiple threads can help performance in MPP platforms, there can be diminishing returns as the cluster has a finite number of concurrency slots to handle the queries. A rule of thumb: most likely you should not use more than 10. 
+
+In the multi-threaded mode, all scripts produce permanent staging tables, whereas in the single-threaded mode, the scripts produce temporary staging tables. In both, the staging tables are merged to produce the final Achilles tables.
+
+### Validate your CDM schema
+
+Before you run **catalogueExport**, it may be useful to verify that your CDM schema conforms to the OMOP CDM specification. This can quickly identify issues with your CDM ahead of time. Refer to the [Common Data Model repo](https://github.com/OHDSI/CommonDataModel) to identify which version of the CDM you intend to validate against.
+
+```{r tidy = FALSE, eval = FALSE}
+connectionDetails <- createConnectionDetails(dbms = "postgresql", 
+                                             server = "localhost/synpuf", 
+                                             user = "cdm_user", 
+                                             password = "cdm_password")
+validateSchema(connectionDetails = connectionDetails, 
+               cdmDatabaseSchema = "cdm", 
+               resultsDatabaseSchema = "results", 
+               cdmVersion = 5.3, 
+               runCostAnalysis = TRUE, 
+               outputFolder = "output", 
+               sqlOnly = FALSE)
+```
+
+# Parameters (Both Modes)
+
+The following sub-sections describe the optional parameters in **catalogueExport** that can be configured, regardless of whether you run the function in single- or multi-threaded mode.
+
+
+## Staging Table Prefix
+
+To keep the staging tables organized, the **catalogueExport** function will use a table prefix of "tmpach" by default, but you can choose a different one using the `tempAchillesPrefix` parameter. This is useful for database platforms like Oracle, which limit the length of table names.
+
+## Source Name
+
+The `sourceName` parameter is used to assign the name of the dataset to the CatalogueExport results. It is used in the Dashboard pages in the visualisations in the database catalogue. If you set this to `NULL`, the **catalogueExport** function will try to obtain the source name from the CDM_SOURCE table.
+
+## Create Table
+
+The `createTable` parameter, when set to `TRUE`, drops any existing results tables and builds new ones. If set to `FALSE`, these tables will persist, and the **catalogueExport** function will just insert new data to them.
+
+## Limiting the Analyses
+
+By default, the **catalogueExport** function runs all analyses detailed in the `getAnalysisDetails` function. However, it may be useful to focus on a subset of analyses rather than running the whole set. This can be accomplished by specifying analysis Ids in the `analysisIds` parameter.
+
+
+## Small Cell Count
+
+To avoid patient identifiability, you can establish the minimum cell size that should be kept in the result tables. Cells with small counts (less than or equal to the value of the `smallCellCount` parameter) are deleted. By default, this is set to 5. However, set to NULL if you don't want any deletions. Note that all counts on concept_id level are rounded up to the nearest multiple of 100 independent on this setting.
+
+## Drop Scratch Tables
+
+*See the Post-Processing section to read about how to run this step separately*
+
+*This parameter is only necessary if running in multi-threaded mode*
+
+The `dropScratchTables` parameter, if set to `TRUE`, will drop all staging tables created during the execution of **catalogueExport** in multi-threaded mode.
+
+
+## Create Indices
+
+*See the Post-Processing section to read about how to run this step separately*
+
+The `createIndices` parameter, if set to `TRUE`, will result in indices on the results tables to be created in order to improve query performance.
+
+## Return Value
+
+When running **catalogueExport**, the return value, if you assign a variable to the function call, is a list object in which metadata about the execution and all of the SQL scripts executed are attributes. You can also run the function call without assigning a variable to it, so that no values are printed or returned.
+
+# Running in Single-Threaded Mode
+
+In single-threaded mode, there is no need to set a `scratchDatabaseSchema`, as temporary tables will be used. 
+
+```{r tidy = FALSE, eval = FALSE}
+connectionDetails <- createConnectionDetails(dbms = "postgresql", 
+                                             server = "localhost/synpuf", 
+                                             user = "cdm_user", 
+                                             password = "cdm_password")
+achilles(connectionDetails = connectionDetails, 
+         cdmDatabaseSchema = "cdm", 
+         resultsDatabaseSchema = "results", 
+         vocabDatabaseSchema = "vocab", 
+         sourceName = "Synpuf", 
+         cdmVersion = 5.3, 
+         numThreads = 1)
+```
+
+# Running in Multi-Threaded Mode
+
+In multi-threaded mode, you need to specify `scratchDatabaseSchema` and use > 1 for `numThreads`. 
+
+```{r tidy = FALSE, eval = FALSE}
+connectionDetails <- createConnectionDetails(dbms = "postgresql", 
+                                             server = "localhost/synpuf", 
+                                             user = "cdm_user", 
+                                             password = "cdm_password")
+achilles(connectionDetails = connectionDetails, 
+         cdmDatabaseSchema = "cdm", 
+         resultsDatabaseSchema = "results", 
+         scratchDatabaseSchema = "scratch", 
+         vocabDatabaseSchema = "vocab", 
+         sourceName = "Synpuf", 
+         cdmVersion = 5.3, 
+         numThreads = 5)
+```
+
+
+
+# Post-Processing
+
+This section describes the usage of standalone functions for post-processing that can be invoked if you did not use them in the **catalogueExport** function call.
+
+
+## Creating Indices
+
+*Not supported by Amazon Redshift or IBM Netezza; function will skip this step if using those platforms*
+
+To improve query performance of the results tables, run the **createIndices** function.
+
+```{r tidy = FALSE, eval = FALSE}
+connectionDetails <- createConnectionDetails(dbms = "postgresql", 
+                                             server = "localhost/synpuf", 
+                                             user = "cdm_user", 
+                                             password = "cdm_password")
+createIndices(connectionDetails = connectionDetails, 
+              resultsDatabaseSchema = "results", 
+              outputFolder = "output")
+```
+
+
+## Dropping All Staging Tables (Multi-threaded only)
+
+If the **catalogueExport** execution has errors, or if you did not enable this step in the call to these functions, use the `dropAllScratchTables` function.
+
+
+```{r tidy = FALSE, eval = FALSE}
+connectionDetails <- createConnectionDetails(dbms = "postgresql", 
+                                             server = "localhost/synpuf", 
+                                             user = "cdm_user", 
+                                             password = "cdm_password")
+dropAllScratchTables(connectionDetails = connectionDetails, 
+                     scratchDatabaseSchema = "scratch", numThreads = 5)
+```
+
+#  Upload results in the Database Catalogue
+
+The output file created in you output folder can be uploaded in the EHDEN Database Catalogue if you have the upload rights for your database.
+
+1. Login to the EHDEN Portal (https://portal.ehden.eu)
+2. Navigate to your database and click on "Dashboard Data Upload" tab (see figure below). The select the file to upload. You can see the upload history on this page as ell
+<table>
+<tr valign="bottom">
+<td width = 50%>
+<img src="https://github.com/EHDEN/CatalogueExport/raw/master/inst/doc/upload.png"/>
+</td>
+</table>
+
+All visualisations in the Database Dashboard and the Network Dashboards will now automatically reflect the new characteristics of your database. Please rerun this procedure for every CDM update so the dashboard shows the latest version of your data.
+
+
+# Acknowledgments
+
+Considerable part of this work has been used from the `Achilles` package.
+
+```{r tidy = TRUE, eval = TRUE}
+citation("Achilles")
+```
+
+For citing the CatalogueExport package please use:
+```{r tidy = TRUE, eval = TRUE}
+citation("CatalogueExport")
+```
