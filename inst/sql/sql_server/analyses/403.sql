@@ -1,15 +1,15 @@
--- 603	Number of distinct procedure occurrence concepts per person
+-- 403	Number of distinct condition occurrence concepts per person
 
 --HINT DISTRIBUTE_ON_KEY(count_value)
-with rawData(count_value) as
+with rawData(person_id, count_value) as
 (
-  select COUNT_BIG(distinct po.procedure_concept_id) as count_value
-	from @cdmDatabaseSchema.procedure_occurrence po inner join 
-  @cdmDatabaseSchema.observation_period op on po.person_id = op.person_id
+  select co.person_id, COUNT_BIG(distinct co.condition_concept_id) as count_value
+  from @cdmDatabaseSchema.condition_occurrence co inner join 
+  @cdmDatabaseSchema.observation_period op on co.person_id = op.person_id
   -- only include events that occur during observation period
-  where po.procedure_date <= op.observation_period_end_date and
-  po.procedure_date >= op.observation_period_start_date
-	group by po.person_id
+  where co.condition_start_date <= op.observation_period_end_date and
+  isnull(co.condition_end_date,co.condition_start_date) >= op.observation_period_start_date
+	group by co.person_id
 ),
 overallStats (avg_value, stdev_value, min_value, max_value, total) as
 (
@@ -35,8 +35,8 @@ priorStats (count_value, total, accumulated) as
   join statsView p on p.rn <= s.rn
   group by s.count_value, s.total, s.rn
 )
-select 603 as analysis_id,
-  o.total as count_value,
+select 403 as analysis_id,
+  floor((count_big(o.total)+99)/100)*100 as count_value,
   o.min_value,
 	o.max_value,
 	o.avg_value,
@@ -46,7 +46,7 @@ select 603 as analysis_id,
 	MIN(case when p.accumulated >= .25 * o.total then count_value else o.max_value end) as p25_value,
 	MIN(case when p.accumulated >= .75 * o.total then count_value else o.max_value end) as p75_value,
 	MIN(case when p.accumulated >= .90 * o.total then count_value else o.max_value end) as p90_value
-into #tempResults_603
+into #tempResults_403
 from priorStats p
 CROSS JOIN overallStats o
 GROUP BY o.total, o.min_value, o.max_value, o.avg_value, o.stdev_value
@@ -56,9 +56,9 @@ GROUP BY o.total, o.min_value, o.max_value, o.avg_value, o.stdev_value
 select analysis_id, 
 cast(null as varchar(255)) as stratum_1, cast(null as varchar(255)) as stratum_2, cast(null as varchar(255)) as stratum_3, cast(null as varchar(255)) as stratum_4, cast(null as varchar(255)) as stratum_5,
 count_value, min_value, max_value, avg_value, stdev_value, median_value, p10_value, p25_value, p75_value, p90_value
-into @scratchDatabaseSchema@schemaDelim@tempAchillesPrefix_dist_603
-from #tempResults_603
+into @scratchDatabaseSchema@schemaDelim@tempAchillesPrefix_dist_403
+from #tempResults_403
 ;
 
-truncate table #tempResults_603;
-drop table #tempResults_603;
+truncate table #tempResults_403;
+drop table #tempResults_403;

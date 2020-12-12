@@ -45,7 +45,7 @@ priorStats (age_decile,count_value, total, accumulated) as
 )
 select 107 as analysis_id,
   CAST(o.age_decile AS VARCHAR(255)) as age_decile,
-  o.total as count_value,
+  floor((count_big(o.total)+99)/100)*100 as count_value,
   o.min_value,
 	o.max_value,
 	o.avg_value,
