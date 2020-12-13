@@ -128,7 +128,7 @@ catalogueExport <- function (connectionDetails,
   # Check the vocabulary version is available from cdm_source
   
   vocabularyVersion <- .getVocabularyVersion(connectionDetails, cdmDatabaseSchema)
-  if (is.null(vocabularyVersion)) {
+  if (is.na(vocabularyVersion)) {
     stop("Error: The vocabulary version needs to be available in the cdm_source table")
   }
   
@@ -174,19 +174,19 @@ catalogueExport <- function (connectionDetails,
                            resultsDatabaseSchema = resultsDatabaseSchema)
   sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms)
   
-  cohortTableExists <- tryCatch({
-    dummy <- DatabaseConnector::querySql(connection = connection, sql = sql, errorReportFile = "cohortTableNotExist.sql")
-    TRUE
-  }, error = function(e) {
-    unlink("cohortTableNotExist.sql")
-    ParallelLogger::logWarn("Cohort table not found, will skip analyses 1700 and 1701")
-    FALSE
-  })
-  DatabaseConnector::disconnect(connection = connection)
-  
-  if (!cohortTableExists) {
-    analysisDetails <- analysisDetails[!analysisDetails$ANALYSIS_ID %in% c(1700,1701),]
-  }
+  # cohortTableExists <- tryCatch({
+  #   dummy <- DatabaseConnector::querySql(connection = connection, sql = sql, errorReportFile = "cohortTableNotExist.sql")
+  #   TRUE
+  # }, error = function(e) {
+  #   unlink("cohortTableNotExist.sql")
+  #   ParallelLogger::logWarn("Cohort table not found, will skip analyses 1700 and 1701")
+  #   FALSE
+  # })
+  # DatabaseConnector::disconnect(connection = connection)
+  # 
+  # if (!cohortTableExists) {
+  #   analysisDetails <- analysisDetails[!analysisDetails$ANALYSIS_ID %in% c(1700,1701),]
+  # }
   
   if (cdmVersion < "5.3") { 
     analysisDetails <- analysisDetails[!analysisDetails$ANALYSIS_ID == 1425,]

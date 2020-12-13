@@ -48,7 +48,7 @@ priorStats (stratum1_id, stratum2_id, count_value, total, accumulated) as
 select 206 as analysis_id,
   CAST(o.stratum1_id AS VARCHAR(255)) AS stratum1_id,
   CAST(o.stratum2_id AS VARCHAR(255)) AS stratum2_id,
-  floor((count_big(o.total)+99)/100)*100 as count_value,
+  floor((o.total+99)/100)*100 as count_value,
   o.min_value,
 	o.max_value,
 	o.avg_value,

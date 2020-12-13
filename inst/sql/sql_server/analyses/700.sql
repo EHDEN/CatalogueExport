@@ -7,7 +7,7 @@ select 700 as analysis_id,
 	cast(null as varchar(255)) as stratum_3, 
 	cast(null as varchar(255)) as stratum_4, 
 	cast(null as varchar(255)) as stratum_5,
-	floor((count_big(de1.PERSON_ID)+99)/100)*100 as count_value
+	floor((count_big(distinct de1.PERSON_ID)+99)/100)*100 as count_value
 into @scratchDatabaseSchema@schemaDelim@tempAchillesPrefix_700
 from
 	@cdmDatabaseSchema.drug_exposure de1

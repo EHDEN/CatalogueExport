@@ -7,7 +7,7 @@ select 400 as analysis_id,
 	cast(null as varchar(255)) as stratum_3, 
 	cast(null as varchar(255)) as stratum_4, 
 	cast(null as varchar(255)) as stratum_5,
-  floor((count_big(condition_occurrence_id)+99)/100)*100 as count_value
+  floor((count_big(distinct co1.person_id)+99)/100)*100 as count_value
 into @scratchDatabaseSchema@schemaDelim@tempAchillesPrefix_400
 from
 	@cdmDatabaseSchema.condition_occurrence co1
