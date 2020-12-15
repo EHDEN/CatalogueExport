@@ -91,6 +91,8 @@ catalogueExport <- function (connectionDetails,
   achillesSql <- c()
   catalogueSql <- c()
   
+  dir.create(file.path(outputFolder), showWarnings = FALSE)
+  
   # Log execution -----------------------------------------------------------------------------------------------------------------
   ParallelLogger::clearLoggers()
   unlink(file.path(outputFolder, "log_catalogueExport.txt"))
