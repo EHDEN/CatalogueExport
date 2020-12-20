@@ -17,7 +17,7 @@ SELECT  2130 as analysis_id,
   cast(null as varchar(255)) as stratum_4,
   cast(null as varchar(255)) as stratum_5,
   floor((c.DRC+99)/100)*100 as count_value
-into @scratchDatabaseSchema@schemaDelim@tempAchillesPrefix_2530
+into @scratchDatabaseSchema@schemaDelim@tempAchillesPrefix_2130
 FROM @cdmDatabaseSchema.device_exposure co
 	JOIN CTE_procedure c
 		ON c.concept_id = co.device_concept_id

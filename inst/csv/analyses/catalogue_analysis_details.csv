@@ -74,6 +74,6 @@ ANALYSIS_ID,DISTRIBUTION,COST,DISTRIBUTED_FIELD,ANALYSIS_NAME,STRATUM_1_NAME,STR
 2100,0,0,,"Number of persons with at least one device exposure, by device_concept_id",device_concept_id,,,,
 2101,0,0,,"Number of device exposure records, by device_concept_id",device_concept_id,,,,
 2105,0,0,,"Number of device exposure records, by device_concept_id by device_type_concept_id",device_concept_id,device_type_concept_id,,,
-2530,0,0,,"Number of descendant device exposure records by concept_id", concept_id,,,,,
+2130,0,0,,"Number of descendant device exposure records by concept_id", concept_id,,,,,
 2201,0,0,,"Number of note records, by note_type_concept_id",note_type_concept_id,,,,
 5000,0,0,,Source and CDM release date; Vocabulary and CDM version,Source Release date,CDM Release date,CDM version,Vocabulary version
