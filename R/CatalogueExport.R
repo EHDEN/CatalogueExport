@@ -93,6 +93,8 @@ catalogueExport <- function (connectionDetails,
   
   dir.create(file.path(outputFolder), showWarnings = FALSE)
   
+  startTime <- Sys.time()
+  
   # Log execution -----------------------------------------------------------------------------------------------------------------
   ParallelLogger::clearLoggers()
   unlink(file.path(outputFolder, "log_catalogueExport.txt"))
@@ -495,7 +497,8 @@ catalogueExport <- function (connectionDetails,
     ParallelLogger::logInfo(sprintf("All Catalogue Export SQL scripts can be found in folder: %s", file.path(outputFolder, "catalogue_export.sql")))
   }
  
-   
+  totalTime <- Sys.time() - startTime
+  ParallelLogger::logInfo(sprintf("[Total Runtime] %f %s", totalTime, attr(totalTime, "units"))) 
   # Export to csv  -----------------------------------------------------------------
   
   exportResultsToCSV(connectionDetails,
