@@ -10,7 +10,7 @@ WITH rawData AS (
   @cdmDatabaseSchema.observation_period op on ce1.person_id = op.person_id
   -- only include events that occur during observation period
   where ce1.device_exposure_start_date <= op.observation_period_end_date and
-  isnull(ce1.device_exposure_end_date,ce1.device_exposure_start_date) >= op.observation_period_start_date
+  ce1.device_exposure_start_date >= op.observation_period_start_date
   
   group by YEAR(ce1.device_exposure_start_date)*100 + month(ce1.device_exposure_start_date)
 )
