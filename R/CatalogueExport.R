@@ -85,8 +85,7 @@ catalogueExport <- function (connectionDetails,
                       dropScratchTables = TRUE,
                       sqlOnly = FALSE,
                       outputFolder = "output",
-                      verboseMode = TRUE,
-                      optimizeAtlasCache = FALSE) {
+                      verboseMode = TRUE) {
   
   achillesSql <- c()
   catalogueSql <- c()

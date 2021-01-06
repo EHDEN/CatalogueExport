@@ -24,8 +24,7 @@ catalogueExport(
   dropScratchTables = TRUE,
   sqlOnly = FALSE,
   outputFolder = "output",
-  verboseMode = TRUE,
-  optimizeAtlasCache = FALSE
+  verboseMode = TRUE
 )
 }
 \arguments{
