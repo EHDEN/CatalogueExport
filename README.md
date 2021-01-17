@@ -31,7 +31,7 @@ CatalogueExport is actively being developed for CDM v5.x only.
     # devtools::install_github("EHDEN/CatalogueExport@*release")  
     
     # To avoid Java 32 vs 64 issues 
-    # devtools::install_github("EHDEN/CatalogieExport", args="--no-multiarch")  
+    # devtools::install_github("EHDEN/CatalogueExport", args="--no-multiarch")  
     ```
 
 4. To run the CatalogueExport analyses, first determine if you'd like to run the function in multi-threaded mode or in single-threaded mode. 
