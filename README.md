@@ -113,7 +113,7 @@ The output file created in you output folder can be uploaded in the EHDEN Databa
 <table>
 <tr valign="bottom">
 <td width = 50%>
-<img src="https://github.com/EHDEN/CatalogueExport/raw/master/inst/doc/upload.png"/>
+<img src="https://github.com/EHDEN/CatalogueExport/raw/master/vignettes/upload.png"/>
 </td>
 </table>
 
