@@ -26,7 +26,7 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-In this vignette we cover how to run the CatlogueExport package on your Common Data Model (CDM) database in order to characterize the dataset and create a result file that can be uploaded in the [EHDEN Catalogue](https://portal.ehden.eu). It is a requirement for all EHDEN sites to run CatalogueExport on their CDM datasets to ensure researchers can evaluate study feasibility and contextualize study results.
+In this vignette we cover how to run the CatlogueExport package on your Common Data Model (CDM) database in order to characterize the dataset and create a result file that can be uploaded in the [EHDEN Catalogue](https://portal.ehden.eu). It is a requirement for all EHDEN sites to run CatalogueExport on their CDM datasets to ensure researchers can perform study feasibility and contextualize study results.
 
 # General Approach
 
@@ -34,16 +34,15 @@ The CatalogueExport package consists of:
 
 1. The **catalogueExport** function runs a set of SQL scripts to characterize the domains and concepts of the CDM. 
 3. The **createIndices** function creates table indices for the achilles tables, which can help improve query performance.
-4. The **validateSchema** function compares your CDM schema against the OMOP CDM specification.
-5. The **getAnalysisDetails** function provides descriptions about the full set of Achilles analyses.
-6. The **dropAllScratchTables** function is useful only for multi-threaded mode. It can clear any leftover staging tables.
+4. The **getAnalysisDetails** function provides descriptions about the full set of Achilles analyses.
+5. The **dropAllScratchTables** function is useful only for multi-threaded mode. It can clear any leftover staging tables.
 
 
 ## SQL Only Mode
 
 In most functions, you can specify `sqlOnly = TRUE` in order to produce the SQL without executing it, which can be useful if you'd like to examine the SQL closely or debug something. The SQL files are stored in the `outputFolder`.
 
-## Logging
+## Loggings
 
 File and console logging is enabled across most functions. The status of each step is logged into files in the `outputFolder`. You can review the files in a common text editor, or use the Shiny Application from the `ParallelLogger` package to view them more interactively.
 
@@ -52,7 +51,7 @@ ParallelLogger::launchLogViewer(logFileName = "output/log_catalogueExport.txt")
 ```
 
 ```{r echo = FALSE}
-knitr::include_graphics(path = "../inst/doc/logging_screenshot.png")
+knitr::include_graphics(path = "../vignettes/logging_screenshot.png")
 ```
 
 ## Verbose Mode
@@ -70,24 +69,6 @@ As most of the queries can run independently, we have added a multi-threaded mod
 Further, while multiple threads can help performance in MPP platforms, there can be diminishing returns as the cluster has a finite number of concurrency slots to handle the queries. A rule of thumb: most likely you should not use more than 10. 
 
 In the multi-threaded mode, all scripts produce permanent staging tables, whereas in the single-threaded mode, the scripts produce temporary staging tables. In both, the staging tables are merged to produce the final Achilles tables.
-
-### Validate your CDM schema
-
-Before you run **catalogueExport**, it may be useful to verify that your CDM schema conforms to the OMOP CDM specification. This can quickly identify issues with your CDM ahead of time. Refer to the [Common Data Model repo](https://github.com/OHDSI/CommonDataModel) to identify which version of the CDM you intend to validate against.
-
-```{r tidy = FALSE, eval = FALSE}
-connectionDetails <- createConnectionDetails(dbms = "postgresql", 
-                                             server = "localhost/synpuf", 
-                                             user = "cdm_user", 
-                                             password = "cdm_password")
-validateSchema(connectionDetails = connectionDetails, 
-               cdmDatabaseSchema = "cdm", 
-               resultsDatabaseSchema = "results", 
-               cdmVersion = 5.3, 
-               runCostAnalysis = TRUE, 
-               outputFolder = "output", 
-               sqlOnly = FALSE)
-```
 
 # Parameters (Both Modes)
 
@@ -214,7 +195,7 @@ dropAllScratchTables(connectionDetails = connectionDetails,
 The output file created in you output folder can be uploaded in the EHDEN Database Catalogue if you have the upload rights for your database.
 
 1. Login to the EHDEN Portal (https://portal.ehden.eu)
-2. Navigate to your database and click on "Dashboard Data Upload" tab (see figure below). The select the file to upload. You can see the upload history on this page as ell
+2. Navigate to your database and click on "Dashboard Data Upload" tab (see figure below). The select the file to upload. You can see the upload history on this page as well
 <table>
 <tr valign="bottom">
 <td width = 50%>

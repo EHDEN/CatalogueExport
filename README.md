@@ -99,7 +99,7 @@ The following analyses are included in the export by default: [Analyses](https:/
 If you like to view the parameterized sql that is executed for a specific analyses you can run the following command:
 
 ```r
-  printAnalysisSql(analysisId = 101)
+  printAnalysesSql(analysisId = 101)
 ```
 
 In case you first want to check all sql that is executed against the CDM you can set `sql_only = TRUE`. This will not execute anything but will create a sql file in your output folder.

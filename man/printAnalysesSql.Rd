@@ -6,6 +6,9 @@
 \usage{
 printAnalysesSql(analysisId)
 }
+\arguments{
+\item{analysisId}{An analysisId for which the sql will be printed.}
+}
 \value{
 None
 }

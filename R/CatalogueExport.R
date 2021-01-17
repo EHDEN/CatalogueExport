@@ -44,7 +44,6 @@
 #' @param createTable                      If true, new results tables will be created in the results schema. If not, the tables are assumed to already exist, and analysis results will be inserted (slower on MPP).
 #' @param smallCellCount                   To avoid patient identifiability, cells with small counts (<= smallCellCount) are deleted. Set to NULL if you don't want any deletions.
 #' @param cdmVersion                       Define the OMOP CDM version used:  currently supports v5 and above. Use major release number or minor number only (e.g. 5, 5.3)
-#' @param validateSchema                   Boolean to determine if CDM Schema Validation should be run. Default = FALSE
 #' @param createIndices                    Boolean to determine if indices should be created on the resulting CatalogueExport tables. Default= TRUE
 #' @param numThreads                       (OPTIONAL, multi-threaded mode) The number of threads to use to run CatalogueExport in parallel. Default is 1 thread.
 #' @param tempPrefix               (OPTIONAL, multi-threaded mode) The prefix to use for the scratch CatalogueExport analyses tables. Default is "tmpach"
@@ -77,8 +76,6 @@ catalogueExport <- function (connectionDetails,
                       createTable = TRUE,
                       smallCellCount = 5, 
                       cdmVersion = "5", 
-                      validateSchema = FALSE,
-                      runCostAnalysis = FALSE,
                       createIndices = TRUE,
                       numThreads = 1,
                       tempPrefix = "tmpach",
@@ -140,18 +137,6 @@ catalogueExport <- function (connectionDetails,
   
   if (!dir.exists(outputFolder)) {
     dir.create(path = outputFolder, recursive = TRUE)
-  }
-  
-  # (optional) Validate CDM schema --------------------------------------------------------------------------------------------------
-  
-  if (validateSchema) {
-    validateSchema(connectionDetails = connectionDetails, 
-                   cdmDatabaseSchema = cdmDatabaseSchema, 
-                   resultsDatabaseSchema = resultsDatabaseSchema,
-                   runCostAnalysis = runCostAnalysis, 
-                   cdmVersion = cdmVersion, 
-                   outputFolder = outputFolder, 
-                   sqlOnly = sqlOnly)
   }
   
   # Get source name if none provided ----------------------------------------------------------------------------------------------
@@ -504,7 +489,7 @@ catalogueExport <- function (connectionDetails,
   exportResultsToCSV(connectionDetails,
                     resultsDatabaseSchema,
                     analysisIds = analysisIds,
-                    minCellCount = 5,
+                    smallCellCount = smallCellCount,
                     exportFolder = outputFolder) 
   ParallelLogger::logInfo(sprintf("Done. The database characteristics have been exported to: %s", file.path(outputFolder, "catalogue_results.csv"))) #ToDO Add timestamp
   ParallelLogger::logInfo("This file can now be uploaded in the Database Catalogue")
@@ -620,79 +605,6 @@ createIndices <- function(connectionDetails,
 }
 
 
-
-#' Validate the CDM schema
-#' 
-#' @details 
-#' Runs a validation script to ensure the CDM is valid based on v5.x
-#' 
-#' @param connectionDetails                An R object of type \code{connectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.
-#' @param cdmDatabaseSchema    	           string name of database schema that contains OMOP CDM. On SQL Server, this should specifiy both the database and the schema, so for example 'cdm_instance.dbo'.
-#' @param resultsDatabaseSchema		         Fully qualified name of database schema that the cohort table is written to. Default is cdmDatabaseSchema. 
-#'                                         On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_results.dbo'.
-#' @param cdmVersion                       Define the OMOP CDM version used:  currently supports v5 and above. Use major release number or minor number only (e.g. 5, 5.3)
-#' @param runCostAnalysis                  Boolean to determine if cost analysis should be run. Note: only works on CDM v5 and v5.1.0+ style cost tables.
-#' @param outputFolder                     Path to store logs and SQL files
-#' @param sqlOnly                          TRUE = just generate SQL files, don't actually run, FALSE = run 
-#' @param verboseMode                      Boolean to determine if the console will show all execution steps. Default = TRUE  
-#' 
-#' @export
-validateSchema <- function(connectionDetails,
-                           cdmDatabaseSchema,
-                           resultsDatabaseSchema = cdmDatabaseSchema,
-                           cdmVersion,
-                           runCostAnalysis,
-                           outputFolder,
-                           sqlOnly = FALSE,
-                           verboseMode = TRUE) {
-  
-  # Log execution --------------------------------------------------------------------------------------------------------------------
-  
-  unlink(file.path(outputFolder, "log_validateSchema.txt"))
-  if (verboseMode) {
-    appenders <- list(ParallelLogger::createConsoleAppender(),
-                      ParallelLogger::createFileAppender(layout = ParallelLogger::layoutParallel, 
-                                                         fileName = file.path(outputFolder, "log_validateSchema.txt")))    
-  } else {
-    appenders <- list(ParallelLogger::createFileAppender(layout = ParallelLogger::layoutParallel, 
-                                                         fileName = file.path(outputFolder, "log_validateSchema.txt")))
-  }
-  logger <- ParallelLogger::createLogger(name = "validateSchema",
-                                         threshold = "INFO",
-                                         appenders = appenders)
-  ParallelLogger::registerLogger(logger) 
-  
-  majorVersions <- lapply(c("5", "5.1", "5.2", "5.3"), function(majorVersion) {
-    if (compareVersion(a = as.character(cdmVersion), b = majorVersion) >= 0) {
-      majorVersion
-    } else {
-      0
-    }
-  })
-  
-  cdmVersion <- max(unlist(majorVersions))
-  
-  sql <- SqlRender::loadRenderTranslateSql(sqlFilename = "validate_schema.sql", 
-                                           packageName = "Achilles", 
-                                           dbms = connectionDetails$dbms,
-                                           warnOnMissingParameters = FALSE,
-                                           cdmDatabaseSchema = cdmDatabaseSchema,
-                                           resultsDatabaseSchema = resultsDatabaseSchema,
-                                           runCostAnalysis = runCostAnalysis,
-                                           cdmVersion = cdmVersion)
-  if (sqlOnly) {
-    SqlRender::writeSql(sql = sql, targetFile = file.path(outputFolder, "ValidateSchema.sql")) 
-  } else {
-    connection <- DatabaseConnector::connect(connectionDetails = connectionDetails)
-    tables <- DatabaseConnector::querySql(connection = connection, sql = sql)
-    ParallelLogger::logInfo("CDM Schema is valid")
-    DatabaseConnector::disconnect(connection = connection)
-  }
-  
-  ParallelLogger::unregisterLogger("validateSchema")
-  invisible(sql)
-}
-
 #' Get all analysis details
 #' 
 #' @details 
@@ -721,7 +633,6 @@ getAnalysisDetails <- function() {
 #' @param connectionDetails                An R object of type \code{connectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.
 #' @param scratchDatabaseSchema            string name of database schema that CatalogueExport scratch tables were written to. 
 #' @param tempPrefix               The prefix to use for the "temporary" (but actually permanent) CatalogueExport analyses tables. Default is "tmpach"
-#' @param tempHeelPrefix                   The prefix to use for the "temporary" (but actually permanent) Heel tables. Default is "tmpheel"
 #' @param numThreads                       The number of threads to use to run this function. Default is 1 thread.
 #' @param tableTypes                       The types of scratch tables to drop: catalogueExport
 #' @param outputFolder                     Path to store logs and SQL files

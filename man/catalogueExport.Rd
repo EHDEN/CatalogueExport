@@ -16,8 +16,6 @@ catalogueExport(
   createTable = TRUE,
   smallCellCount = 5,
   cdmVersion = "5",
-  validateSchema = FALSE,
-  runCostAnalysis = FALSE,
   createIndices = TRUE,
   numThreads = 1,
   tempPrefix = "tmpach",
@@ -54,8 +52,6 @@ If not specified, all analyses will be executed. Use \code{\link{getAnalysisDeta
 \item{smallCellCount}{To avoid patient identifiability, cells with small counts (<= smallCellCount) are deleted. Set to NULL if you don't want any deletions.}
 
 \item{cdmVersion}{Define the OMOP CDM version used:  currently supports v5 and above. Use major release number or minor number only (e.g. 5, 5.3)}
-
-\item{validateSchema}{Boolean to determine if CDM Schema Validation should be run. Default = FALSE}
 
 \item{createIndices}{Boolean to determine if indices should be created on the resulting CatalogueExport tables. Default= TRUE}
 

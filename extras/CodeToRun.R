@@ -5,8 +5,9 @@
 #-----------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------
 # This CodeToRun.R is provided as an example of how to run this package.
-# Below you will find 2 sections: the 1st is for installing the dependencies 
-# required to run the package and the 2nd for running the package.
+# Below you will find 3 sections: the 1st is for installing the dependencies 
+# required to run the package and the 2nd for setting your database details,
+# and the 3rd for running the package.
 #
 # The code below makes use of R environment variables (denoted by "Sys.getenv(<setting>)") to 
 # allow for protection of sensitive information. If you'd like to use R environment variables stored
@@ -24,6 +25,7 @@
 #    DB_USER = "database_user_name_goes_here"
 #    DB_PASSWORD = "your_secret_password"
 #    FFTEMP_DIR = "E:/fftemp"
+#    CONNECTION_STRING = <optional>
 #
 # The following describes the settings
 #    DBMS, DB_SERVER, DB_PORT, DB_USER, DB_PASSWORD := These are the details used to connect
@@ -42,7 +44,7 @@
 #
 # 
 # *******************************************************
-# SECTION 1: Make sure to install all dependencies (not needed if already done) -------------------------------
+# SECTION 1: Make sure to install all dependencies (not needed if already done) 
 # *******************************************************
 # 
 # Prevents errors due to packages being built for other R versions: 
@@ -59,9 +61,8 @@ Sys.setenv("R_REMOTES_NO_ERRORS_FROM_WARNINGS" = TRUE)
 #devtools::install_github("EHDEN/CatalogueExport")
 
 # *******************************************************
-# SECTION 2: Running the package -------------------------------------------------------------------------------
+# SECTION 2: Setting Database Specific Variables 
 # *******************************************************
-library(CatalogueExport)
 
 # Optional: specify where the temporary files (used by the ff package) will be created:
 fftempdir <- if (Sys.getenv("FFTEMP_DIR") == "") "~/fftemp" else Sys.getenv("FFTEMP_DIR")
@@ -73,36 +74,39 @@ user <- if (Sys.getenv("DB_USER") == "") NULL else Sys.getenv("DB_USER")
 password <- if (Sys.getenv("DB_PASSWORD") == "") NULL else Sys.getenv("DB_PASSWORD")
 server = Sys.getenv("DB_SERVER")
 port = Sys.getenv("DB_PORT")
-connectionString = Sys.getenv("CONNECTION_STRING")
 connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = dbms,
                                                                 server = server,
                                                                 user = user,
                                                                 password = password,
                                                                 port = port)
 
-# Or use the connectionString is provided.
+# Or use the connectionString if provided.
+# connectionString = Sys.getenv("CONNECTION_STRING")
 # connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = dbms,
 #                                                                 server = server,
 #                                                                 user = user,
 #                                                                 password = password,
-#                                                                 connectionString = connectionString )
+#                                                                 connectionString = connectionString)
 
 # For Oracle: define a schema that can be used to emulate temp tables:
 oracleTempSchema <- NULL
 
 # Details specific to the database:
-databaseId <- "IPCI"
-databaseName <- "Integrated Primary Care Information"
-databaseDescription <- "Dutch GP Database"
+databaseId <- "<your_databaseId>"
+databaseName <- "<your_databaseName>"
+databaseDescription <- "<your_databaseDescription>"
 
 # Details for connecting to the CDM and storing the results
 outputFolder <- file.path("~/Documents/Results", databaseId)
-cdmDatabaseSchema <- "synpuf1000"
-cohortDatabaseSchema <- "scratch"
-resultsDatabaseSchema <- "prijnbeek"
-vocabDatabaseSchema = "synpuf1000"
+cdmDatabaseSchema <- "<your_cdmDatabaseSchema>"
+vocabDatabaseSchema <- "<your_vocabDatabaseSchema>"
+resultsDatabaseSchema <- "<your_resultsDatabaseSchema>" 
 
 
+# *******************************************************
+# SECTION 3: Running the package 
+# *******************************************************
+library(CatalogueExport)
 catalogueExport(connectionDetails, 
                 cdmDatabaseSchema = cdmDatabaseSchema, 
                 resultsDatabaseSchema = resultsDatabaseSchema,

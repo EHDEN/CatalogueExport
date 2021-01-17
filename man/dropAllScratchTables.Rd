@@ -28,8 +28,6 @@ dropAllScratchTables(
 \item{outputFolder}{Path to store logs and SQL files}
 
 \item{verboseMode}{Boolean to determine if the console will show all execution steps. Default = TRUE}
-
-\item{tempHeelPrefix}{The prefix to use for the "temporary" (but actually permanent) Heel tables. Default is "tmpheel"}
 }
 \description{
 Drop all possible scratch tables
