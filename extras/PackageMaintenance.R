@@ -36,7 +36,7 @@ devtools::spell_check()
 
 # Create manual and vignettes:
 unlink("extras/CatalogueExport.pdf")
-system("R CMD Rd2pdf ./ --output=extras/CatalogueExport.pdf")
+system("R CMD Rd2pdf ./ --output=inst/doc/CatalogueExport.pdf")
 
 rmarkdown::render("vignettes/RunningCatalogueExport.Rmd",
                   output_file = "../inst/doc/runningCatalogueExport.pdf",
