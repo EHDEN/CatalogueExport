@@ -10,7 +10,7 @@ vocabulary_version as stratum_5,
 into @scratchDatabaseSchema@schemaDelim@tempAchillesPrefix_5000
 from @cdmDatabaseSchema.cdm_source;
 
---HINT DISTRIBUTE_ON_KEY(stratum_1)
+-- HINT DISTRIBUTE_ON_KEY(stratum_1)
 --select 5000 as analysis_id, CAST('@source_name' AS VARCHAR(255)) as stratum_1, 
 --cast(null as varchar(255)) as stratum_2, cast(null as varchar(255)) as stratum_3, cast(null as varchar(255)) as stratum_4, cast(null as varchar(255)) as stratum_5,
 --9999 as count_value, 
