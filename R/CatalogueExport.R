@@ -142,7 +142,7 @@ catalogueExport <- function (connectionDetails,
   # Get source name if none provided ----------------------------------------------------------------------------------------------
   
   if (missing(sourceName) & !sqlOnly) {
-    .getSourceName(connectionDetails, cdmDatabaseSchema)
+    sourceName <- .getSourceName(connectionDetails, cdmDatabaseSchema)
   }
   
   # Obtain analyses to run --------------------------------------------------------------------------------------------------------
