@@ -35,7 +35,7 @@ OhdsiRTools::findNonAsciiStringsInFolder()
 devtools::spell_check()
 
 # Create manual and vignettes:
-unlink("extras/CatalogueExport.pdf")
+unlink("inst/doc/CatalogueExport.pdf")
 system("R CMD Rd2pdf ./ --output=inst/doc/CatalogueExport.pdf")
 
 rmarkdown::render("vignettes/RunningCatalogueExport.Rmd",

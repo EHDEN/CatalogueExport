@@ -125,7 +125,7 @@ We use the <a href="https://github.com/EHDEN/CatalogueExport/issues">GitHub issu
 
 Use the [discussion section](https://github.com/EHDEN/CatalogueExport/discussions/12) for question/new ideas etc. 
 
-[Package Manual](https://github.com/EHDEN/CatalogueExport/raw/master/extras/CatalogueExport.pdf)
+[Package Manual](https://github.com/EHDEN/CatalogueExport/raw/master/inst/doc/CatalogueExport.pdf)
 
 ## Project status: Alpha
 The tool is currently being tested by a selected group of data custodians.
