@@ -22,4 +22,4 @@ FROM @cdmDatabaseSchema.measurement co
 	JOIN CTE_procedure c
 		ON c.concept_id = co.measurement_concept_id
 GROUP BY co.measurement_concept_id, c.DRC
-
+;
