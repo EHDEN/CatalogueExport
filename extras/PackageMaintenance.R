@@ -37,9 +37,11 @@ devtools::spell_check()
 # Create manual and vignettes:
 unlink("inst/doc/CatalogueExport.pdf")
 system("R CMD Rd2pdf ./ --output=inst/doc/CatalogueExport.pdf")
+tools::compactPDF("inst/doc/CatalogueExport.pdf", gs_quality = "ebook")
 
 rmarkdown::render("vignettes/RunningCatalogueExport.Rmd",
                   output_file = "../inst/doc/runningCatalogueExport.pdf",
                   rmarkdown::pdf_document(latex_engine = "pdflatex",
                                           toc = TRUE, toc_depth = 3,
                                           number_sections = TRUE))
+tools::compactPDF("inst/doc/runningCatalogueExport.pdf", gs_quality = "ebook")

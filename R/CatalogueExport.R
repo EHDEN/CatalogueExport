@@ -930,7 +930,7 @@ dropAllScratchTables <- function(connectionDetails,
 .getResultBenchmark <- function(analysisId,
                                         outputFolder) {
   
-  logs <- read.table(file = file.path(outputFolder, "log_catalogueExport.txt"), 
+  logs <- utils::read.table(file = file.path(outputFolder, "log_catalogueExport.txt"), 
                      header = FALSE, sep = "\t", stringsAsFactors = FALSE)
   names(logs) <- c("startTime", "thread", "logType", "package", "packageFunction", "comment")
   logs <- logs[grepl(pattern = "COMPLETE", x = logs$comment),]

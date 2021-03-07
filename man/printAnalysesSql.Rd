@@ -4,10 +4,12 @@
 \alias{printAnalysesSql}
 \title{Print the sql of an analysis}
 \usage{
-printAnalysesSql(analysisId)
+printAnalysesSql(analysisId, connectionDetails)
 }
 \arguments{
 \item{analysisId}{An analysisId for which the sql will be printed.}
+
+\item{connectionDetails}{An R object of type \code{connectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.}
 }
 \value{
 None
