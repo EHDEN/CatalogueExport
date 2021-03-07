@@ -345,7 +345,11 @@ catalogueExport <- function (connectionDetails,
                                           delta, 
                                           attr(delta, "units")))  
         }, error = function(e) {
-          ParallelLogger::logError(sprintf("Analysis %d -- ERROR %s", mainSql$analysisId, e))
+          ParallelLogger::logError(sprintf("[Main Analysis] [ERROR] %d (%s)", 
+                                           as.integer(mainSql$analysisId), 
+                                           e))
+          DatabaseConnector::disconnect(connection)
+          stop()
         })
       }
     } else {
@@ -370,6 +374,9 @@ catalogueExport <- function (connectionDetails,
                                                   ParallelLogger::logError(sprintf("[Main Analysis] [ERROR] %d (%s)", 
                                                                                    as.integer(mainSql$analysisId), 
                                                                                    e))
+                                                  ParallelLogger::stopCluster(cluster = cluster)
+                                                  DatabaseConnector::disconnect(connection)
+                                                  stop()
                                                 })
                                               })
       
@@ -413,6 +420,8 @@ catalogueExport <- function (connectionDetails,
       }, error = function(e) {
         ParallelLogger::logError(sprintf("Merging scratch CatalogueExport tables [ERROR] (%s)",
                                          e))
+        DatabaseConnector::disconnect(connection)
+        stop()
       })
     } else {
       cluster <- ParallelLogger::makeCluster(numberOfThreads = numThreads, singleThreadToMain = TRUE)
@@ -427,6 +436,9 @@ catalogueExport <- function (connectionDetails,
       }, error = function(e) {
         ParallelLogger::logError(sprintf("Merging scratch CatalogueExport tables [ERROR] (%s)",
                                          e))
+        ParallelLogger::stopCluster(cluster = cluster)
+        DatabaseConnector::disconnect(connection)
+        stop()
       })
       ParallelLogger::stopCluster(cluster = cluster)
     }
