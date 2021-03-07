@@ -61,7 +61,7 @@ Sys.setenv("R_REMOTES_NO_ERRORS_FROM_WARNINGS" = TRUE)
 #devtools::install_github("EHDEN/CatalogueExport")
 
 # *******************************************************
-# SECTION 2: Setting Database Specific Variables 
+# SECTION 2: Setting Specific Local Variables 
 # *******************************************************
 
 # Optional: specify where the temporary files (used by the ff package) will be created:

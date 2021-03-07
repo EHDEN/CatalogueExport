@@ -142,7 +142,7 @@ catalogueExport <- function (connectionDetails,
   # Get source name if none provided ----------------------------------------------------------------------------------------------
   
   if (missing(sourceName) & !sqlOnly) {
-    .getSourceName(connectionDetails, cdmDatabaseSchema)
+    sourceName <- .getSourceName(connectionDetails, cdmDatabaseSchema)
   }
   
   # Obtain analyses to run --------------------------------------------------------------------------------------------------------
@@ -345,7 +345,11 @@ catalogueExport <- function (connectionDetails,
                                           delta, 
                                           attr(delta, "units")))  
         }, error = function(e) {
-          ParallelLogger::logError(sprintf("Analysis %d -- ERROR %s", mainSql$analysisId, e))
+          ParallelLogger::logError(sprintf("[Main Analysis] [ERROR] %d (%s)", 
+                                           as.integer(mainSql$analysisId), 
+                                           e))
+          DatabaseConnector::disconnect(connection)
+          stop()
         })
       }
     } else {
@@ -370,6 +374,9 @@ catalogueExport <- function (connectionDetails,
                                                   ParallelLogger::logError(sprintf("[Main Analysis] [ERROR] %d (%s)", 
                                                                                    as.integer(mainSql$analysisId), 
                                                                                    e))
+                                                  ParallelLogger::stopCluster(cluster = cluster)
+                                                  DatabaseConnector::disconnect(connection)
+                                                  stop()
                                                 })
                                               })
       
@@ -413,6 +420,8 @@ catalogueExport <- function (connectionDetails,
       }, error = function(e) {
         ParallelLogger::logError(sprintf("Merging scratch CatalogueExport tables [ERROR] (%s)",
                                          e))
+        DatabaseConnector::disconnect(connection)
+        stop()
       })
     } else {
       cluster <- ParallelLogger::makeCluster(numberOfThreads = numThreads, singleThreadToMain = TRUE)
@@ -427,6 +436,9 @@ catalogueExport <- function (connectionDetails,
       }, error = function(e) {
         ParallelLogger::logError(sprintf("Merging scratch CatalogueExport tables [ERROR] (%s)",
                                          e))
+        ParallelLogger::stopCluster(cluster = cluster)
+        DatabaseConnector::disconnect(connection)
+        stop()
       })
       ParallelLogger::stopCluster(cluster = cluster)
     }
@@ -918,7 +930,7 @@ dropAllScratchTables <- function(connectionDetails,
 .getResultBenchmark <- function(analysisId,
                                         outputFolder) {
   
-  logs <- read.table(file = file.path(outputFolder, "log_catalogueExport.txt"), 
+  logs <- utils::read.table(file = file.path(outputFolder, "log_catalogueExport.txt"), 
                      header = FALSE, sep = "\t", stringsAsFactors = FALSE)
   names(logs) <- c("startTime", "thread", "logType", "package", "packageFunction", "comment")
   logs <- logs[grepl(pattern = "COMPLETE", x = logs$comment),]

@@ -22,4 +22,4 @@ FROM @cdmDatabaseSchema.device_exposure co
 	JOIN CTE_procedure c
 		ON c.concept_id = co.device_concept_id
 GROUP BY co.device_concept_id, c.DRC
-
+;

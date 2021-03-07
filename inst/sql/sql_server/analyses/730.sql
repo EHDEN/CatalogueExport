@@ -22,4 +22,4 @@ FROM @cdmDatabaseSchema.drug_exposure co
 	JOIN CTE_procedure c
 		ON c.concept_id = co.drug_concept_id
 GROUP BY co.drug_concept_id, c.DRC
-
+;
