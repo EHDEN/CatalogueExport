@@ -15,6 +15,6 @@ from
   @detailSqls
 ) Q
 {@smallCellCount != ''}?{
-  where count_value > @smallCellCount
+  where raw_count_value > @smallCellCount
 }
 ;
