@@ -26,6 +26,7 @@
 #    DB_PASSWORD = "your_secret_password"
 #    FFTEMP_DIR = "E:/fftemp"
 #    CONNECTION_STRING = <optional>
+#    PATH_TO_DRIVER = "./"
 #
 # The following describes the settings
 #    DBMS, DB_SERVER, DB_PORT, DB_USER, DB_PASSWORD := These are the details used to connect
@@ -69,16 +70,19 @@ fftempdir <- if (Sys.getenv("FFTEMP_DIR") == "") "~/fftemp" else Sys.getenv("FFT
 options(fftempdir = fftempdir)
 
 # Details for connecting to the server:
-dbms = Sys.getenv("DBMS")
+dbms <- Sys.getenv("DBMS")
 user <- if (Sys.getenv("DB_USER") == "") NULL else Sys.getenv("DB_USER")
 password <- if (Sys.getenv("DB_PASSWORD") == "") NULL else Sys.getenv("DB_PASSWORD")
-server = Sys.getenv("DB_SERVER")
-port = Sys.getenv("DB_PORT")
+server <- Sys.getenv("DB_SERVER")
+port <- Sys.getenv("DB_PORT")
+pathToDriver <- Sys.getenv("PATH_TO_DRIVER")
 connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = dbms,
                                                                 server = server,
                                                                 user = user,
                                                                 password = password,
-                                                                port = port)
+                                                                port = port,
+                                                                pathToDriver = pathToDriver
+)
 
 # Or use the connectionString if provided.
 # connectionString = Sys.getenv("CONNECTION_STRING")
@@ -88,20 +92,15 @@ connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = dbms,
 #                                                                 password = password,
 #                                                                 connectionString = connectionString)
 
-# For Oracle: define a schema that can be used to emulate temp tables:
-oracleTempSchema <- NULL
-
 # Details specific to the database:
 databaseId <- "<your_databaseId>"
 databaseName <- "<your_databaseName>"
-databaseDescription <- "<your_databaseDescription>"
 
 # Details for connecting to the CDM and storing the results
 outputFolder <- file.path("~/Documents/Results", databaseId)
 cdmDatabaseSchema <- "<your_cdmDatabaseSchema>"
 vocabDatabaseSchema <- "<your_vocabDatabaseSchema>"
 resultsDatabaseSchema <- "<your_resultsDatabaseSchema>" 
-
 
 # *******************************************************
 # SECTION 3: Running the package 
@@ -112,4 +111,6 @@ catalogueExport(connectionDetails,
                 resultsDatabaseSchema = resultsDatabaseSchema,
                 vocabDatabaseSchema = vocabDatabaseSchema,
                 sourceName = databaseName, 
-                cdmVersion = "5.3.0")
+                cdmVersion = "5.3",
+                outputFolder = outputFolder
+)
