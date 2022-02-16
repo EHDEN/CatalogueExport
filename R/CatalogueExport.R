@@ -46,7 +46,7 @@
 #' @param cdmVersion                       Define the OMOP CDM version used:  currently supports v5 and above. Use major release number or minor number only (e.g. 5, 5.3)
 #' @param createIndices                    Boolean to determine if indices should be created on the resulting CatalogueExport tables. Default= TRUE
 #' @param numThreads                       (OPTIONAL, multi-threaded mode) The number of threads to use to run CatalogueExport in parallel. Default is 1 thread.
-#' @param tempPrefix               (OPTIONAL, multi-threaded mode) The prefix to use for the scratch CatalogueExport analyses tables. Default is "tmpach"
+#' @param tempPrefix               (OPTIONAL, multi-threaded mode) The prefix to use for the scratch CatalogueExport analyses tables. Default is "tmpcatex"
 #' @param dropScratchTables                (OPTIONAL, multi-threaded mode) TRUE = drop the scratch tables (may take time depending on dbms), FALSE = leave them in place for later removal.
 #' @param sqlOnly                          Boolean to determine if CatalogueExport should be fully executed. TRUE = just generate SQL files, don't actually run, FALSE = run CatalogueExport
 #' @param outputFolder                     Path to store logs and SQL files
@@ -314,7 +314,7 @@ catalogueExport <- function (connectionDetails,
                                vocabDatabaseSchema = vocabDatabaseSchema,
                                tempEmulationSchema = tempEmulationSchema,
                                cdmVersion = cdmVersion,
-                               tempAchillesPrefix = tempPrefix,
+                               tempPrefix = tempPrefix,
                                sourceName = sourceName)
     )
   })
@@ -435,7 +435,7 @@ catalogueExport <- function (connectionDetails,
   }
   
   if (!sqlOnly) {
-    ParallelLogger::logInfo(sprintf("Done. Catalogue results can now be found in schema %s", resultsDatabaseSchema))
+    ParallelLogger::logInfo(sprintf("Done. Catalogue Export results can now be found in schema %s", resultsDatabaseSchema))
   }
   
   # Clean up scratch tables -----------------------------------------------
@@ -445,7 +445,7 @@ catalogueExport <- function (connectionDetails,
     DatabaseConnector::disconnect(connection = connection)
   } else if (dropScratchTables & !sqlOnly) {
     # Drop the scratch tables
-    ParallelLogger::logInfo(sprintf("Dropping scratch Catalogie tables from schema %s", scratchDatabaseSchema))
+    ParallelLogger::logInfo(sprintf("Dropping scratch Catalogue Export tables from schema %s", scratchDatabaseSchema))
     
     dropAllScratchTables(connectionDetails = connectionDetails, 
                          scratchDatabaseSchema = scratchDatabaseSchema, 
@@ -454,7 +454,7 @@ catalogueExport <- function (connectionDetails,
                          tableTypes = c("catalogueExport"),
                          outputFolder = outputFolder)
     
-    ParallelLogger::logInfo(sprintf("Temporary Catalogue tables removed from schema %s", scratchDatabaseSchema))
+    ParallelLogger::logInfo(sprintf("Temporary Catalogue Export tables removed from schema %s", scratchDatabaseSchema))
   }
   
   # Create indices -----------------------------------------------------------------
@@ -530,7 +530,7 @@ catalogueExport <- function (connectionDetails,
 #' @param resultsDatabaseSchema		         Fully qualified name of database schema that we can write final results to. Default is cdmDatabaseSchema. 
 #'                                         On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_results.dbo'.
 #' @param outputFolder                     Path to store logs and SQL files
-#' @param sqlOnly                          TRUE = just generate SQL files, don't actually run, FALSE = run Achilles
+#' @param sqlOnly                          TRUE = just generate SQL files, don't actually run, FALSE = run Catelogue Export
 #' @param verboseMode                      Boolean to determine if the console will show all execution steps. Default = TRUE 
 #' @param catalogueTables                  Which CatalogueExport tables should be indexed? Default is both catalogue_results and catalogue_results_dist. 
 #' 
@@ -638,7 +638,7 @@ getAnalysisDetails <- function() {
 #' 
 #' @param connectionDetails                An R object of type \code{connectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.
 #' @param scratchDatabaseSchema            string name of database schema that CatalogueExport scratch tables were written to. 
-#' @param tempPrefix               The prefix to use for the "temporary" (but actually permanent) CatalogueExport analyses tables. Default is "tmpach"
+#' @param tempPrefix               The prefix to use for the "temporary" (but actually permanent) CatalogueExport analyses tables. Default is "tmpcatex"
 #' @param numThreads                       The number of threads to use to run this function. Default is 1 thread.
 #' @param tableTypes                       The types of scratch tables to drop: catalogueExport
 #' @param outputFolder                     Path to store logs and SQL files
@@ -777,7 +777,7 @@ dropAllScratchTables <- function(connectionDetails,
                             vocabDatabaseSchema,
                             tempEmulationSchema,
                             cdmVersion,
-                            tempAchillesPrefix,
+                            tempPrefix,
                             sourceName) {
   
   SqlRender::loadRenderTranslateSql(sqlFilename = file.path("analyses", paste(analysisId, "sql", sep = ".")),
@@ -789,7 +789,7 @@ dropAllScratchTables <- function(connectionDetails,
                                     vocabDatabaseSchema = vocabDatabaseSchema,
                                     resultsDatabaseSchema = resultsDatabaseSchema,
                                     schemaDelim = schemaDelim,
-                                    tempAchillesPrefix = tempAchillesPrefix,
+                                    tempAchillesPrefix = tempPrefix,
                                     tempEmulationSchema = tempEmulationSchema,
                                     source_name = sourceName,
                                     package_version = packageVersion(pkg = "CatalogueExport"),
