@@ -6,7 +6,8 @@ source_release_date as stratum_2,
 cdm_release_date as stratum_3, 
 cdm_version as stratum_4,
 vocabulary_version as stratum_5, 
-9999 as count_value
+9999 as count_value,
+9999 as raw_count_value
 into @scratchDatabaseSchema@schemaDelim@tempAchillesPrefix_5000
 from @cdmDatabaseSchema.cdm_source;
 

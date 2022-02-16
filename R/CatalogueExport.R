@@ -829,7 +829,7 @@ dropAllScratchTables <- function(connectionDetails,
   # obtain the analysis SQLs to union in the merge ------------------------------------------------------------------
   
   detailSqls <- lapply(resultsTable$analysisIds[resultsTable$analysisIds %in% analysisIds], function(analysisId) { 
-    analysisSql <- SqlRender::render(sql = "select @castedNames from 
+    analysisSql <- SqlRender::render(sql = "select @castedNames, raw_count_value from
                                      @scratchDatabaseSchema@schemaDelim@tablePrefix_@analysisId", 
                                      scratchDatabaseSchema = scratchDatabaseSchema,
                                      schemaDelim = schemaDelim,
@@ -854,7 +854,7 @@ dropAllScratchTables <- function(connectionDetails,
         }
       })
       
-      benchmarkSql <- SqlRender::render(sql = "select @benchmarkSelect",
+      benchmarkSql <- SqlRender::render(sql = "select @benchmarkSelect, NULL as raw_count_value",
                                         benchmarkSelect = paste(benchmarkSelects, collapse = ", "))
       
       analysisSql <- paste(c(analysisSql, benchmarkSql), collapse = " union all ")
@@ -873,7 +873,7 @@ dropAllScratchTables <- function(connectionDetails,
                                     oracleTempSchema = oracleTempSchema,
                                     detailType = resultsTable$detailType,
                                     detailSqls = paste(detailSqls, collapse = " \nunion all\n "),
-                                    fieldNames = paste(resultsTable$schema$FIELD_NAME, collapse = ", "),
+                                    fieldNames = paste(c(resultsTable$schema$FIELD_NAME, 'raw_count_value'), collapse = ", "),
                                     smallCellCount = smallCellCount)
 }
 

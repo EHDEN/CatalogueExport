@@ -21,6 +21,7 @@ SELECT
   cast(null as varchar(255)) as stratum_3,
   cast(null as varchar(255)) as stratum_4,
   cast(null as varchar(255)) as stratum_5,
-  count_value
+  count_value,
+  count_value as raw_count_value
 into @scratchDatabaseSchema@schemaDelim@tempAchillesPrefix_2120
 FROM rawData;

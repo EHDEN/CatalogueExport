@@ -16,7 +16,8 @@ SELECT  1830 as analysis_id,
   cast(null as varchar(255)) as stratum_3,
   cast(null as varchar(255)) as stratum_4,
   cast(null as varchar(255)) as stratum_5,
-  floor((c.DRC+99)/100)*100 as count_value
+  floor((c.DRC+99)/100)*100 as count_value,
+  c.DRC+99 as raw_count_value
 into @scratchDatabaseSchema@schemaDelim@tempAchillesPrefix_1830
 FROM @cdmDatabaseSchema.measurement co
 	JOIN CTE_procedure c
