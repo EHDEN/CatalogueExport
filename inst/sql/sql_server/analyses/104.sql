@@ -34,7 +34,7 @@ ageStatsPrior (gender_concept_id, age_value, total, accumulated) as
 )
 select 104 as analysis_id,
   CAST(o.gender_concept_id AS VARCHAR(255)) as stratum_1,
-  floor((count_big(o.total)+99)/100)*100 as count_value,
+  floor((o.total+99)/100)*100 as count_value,
   o.total as raw_count_value,
   o.min_value,
 	o.max_value,
