@@ -10,7 +10,7 @@ catalogueExport(
   resultsDatabaseSchema = cdmDatabaseSchema,
   scratchDatabaseSchema = resultsDatabaseSchema,
   vocabDatabaseSchema = cdmDatabaseSchema,
-  oracleTempSchema = resultsDatabaseSchema,
+  tempEmulationSchema = resultsDatabaseSchema,
   sourceName = "",
   analysisIds = "",
   createTable = TRUE,
@@ -18,7 +18,7 @@ catalogueExport(
   cdmVersion = "5",
   createIndices = TRUE,
   numThreads = 1,
-  tempPrefix = "tmpach",
+  tempPrefix = "tmpcatex",
   dropScratchTables = TRUE,
   sqlOnly = FALSE,
   outputFolder = "output",
@@ -40,7 +40,7 @@ Making this "#" will run CatalogueExport in single-threaded mode and use tempora
 
 \item{vocabDatabaseSchema}{String name of database schema that contains OMOP Vocabulary. Default is cdmDatabaseSchema. On SQL Server, this should specifiy both the database and the schema, so for example 'results.dbo'.}
 
-\item{oracleTempSchema}{For Oracle only: the name of the database schema where you want all temporary tables to be managed. Requires create/insert permissions to this database.}
+\item{tempEmulationSchema}{For Oracle only: the name of the database schema where you want all temporary tables to be managed. Requires create/insert permissions to this database.}
 
 \item{sourceName}{String name of the data source name. If blank, CDM_SOURCE table will be queried to try to obtain this.}
 
@@ -57,7 +57,7 @@ If not specified, all analyses will be executed. Use \code{\link{getAnalysisDeta
 
 \item{numThreads}{(OPTIONAL, multi-threaded mode) The number of threads to use to run CatalogueExport in parallel. Default is 1 thread.}
 
-\item{tempPrefix}{(OPTIONAL, multi-threaded mode) The prefix to use for the scratch CatalogueExport analyses tables. Default is "tmpach"}
+\item{tempPrefix}{(OPTIONAL, multi-threaded mode) The prefix to use for the scratch CatalogueExport analyses tables. Default is "tmpcatex"}
 
 \item{dropScratchTables}{(OPTIONAL, multi-threaded mode) TRUE = drop the scratch tables (may take time depending on dbms), FALSE = leave them in place for later removal.}
 
@@ -80,7 +80,8 @@ An object of type \code{catalogueResults} containing details for connecting to t
                               
 \dontrun{
 connectionDetails <- createConnectionDetails(dbms="sql server", server="some_server")
-results <- achilles(connectionDetails = connectionDetails, 
+results <- CatalogueExport(
+                    connectionDetails = connectionDetails,
                     cdmDatabaseSchema = "cdm", 
                     resultsDatabaseSchema="results", 
                     scratchDatabaseSchema="scratch",

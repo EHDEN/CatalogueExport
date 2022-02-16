@@ -24,6 +24,9 @@ On SQL Server, this should specifiy both the database and the schema, so for exa
 
 \item{exportFolder}{Folder to export the results to.}
 }
+\value{
+boolean               TRUE if export succesfull, FALSE if not.
+}
 \description{
 \code{exportResults} exports the results to a csv file for upload to the Catalogue
 }
