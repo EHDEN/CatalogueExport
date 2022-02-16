@@ -31,7 +31,7 @@ exportResultsToCSV <- function(connectionDetails,
                                              dbms = connectionDetails$dbms,
                                              warnOnMissingParameters = FALSE,
                                              results_database_schema = resultsDatabaseSchema,
-                                             min_cell_count = smallCellCount,
+                                             smallCellCount = smallCellCount,
                                              analysis_ids = analysisIds)
     ParallelLogger::logInfo("Querying catalogue_results")
     results <- DatabaseConnector::querySql(connection = connection, sql = sql)

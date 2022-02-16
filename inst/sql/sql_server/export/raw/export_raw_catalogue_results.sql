@@ -10,13 +10,13 @@ SELECT analysis_id, stratum_1, stratum_2, stratum_3, stratum_4, stratum_5, count
         cast(null as float) P75_value,
         cast(null as float) p90_value
 FROM  @results_database_schema.catalogue_results
-WHERE count_value > @min_cell_count
+WHERE count_value > @smallCellCount
 {@analysis_ids != ''} ? {AND analysis_id IN (@analysis_ids)}
 
 UNION
 
 select * from @results_database_schema.catalogue_results_dist
-WHERE count_value > @min_cell_count
+WHERE count_value > @smallCellCount
 {@analysis_ids != ''} ? {AND analysis_id IN (@analysis_ids)}
 ORDER BY analysis_id ASC
 ;
