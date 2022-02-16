@@ -862,7 +862,7 @@ dropAllScratchTables <- function(connectionDetails,
                                     tempEmulationSchema = tempEmulationSchema,
                                     detailType = resultsTable$detailType,
                                     detailSqls = paste(detailSqls, collapse = " \nunion all\n "),
-                                    fieldNames = paste(resultsTable$schema$FIELD_NAME), collapse = ", ")),
+                                    fieldNames = paste(resultsTable$schema$FIELD_NAME, collapse = ", "),
                                     smallCellCount = smallCellCount)
 }
 
