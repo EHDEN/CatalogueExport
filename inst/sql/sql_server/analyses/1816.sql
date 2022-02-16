@@ -49,7 +49,7 @@ group by subject_id, unit_concept_id, count_value
 select 1816 as analysis_id,
   CAST(o.stratum1_id AS VARCHAR(255)) AS stratum1_id,
   CAST(o.stratum2_id AS VARCHAR(255)) AS stratum2_id,
-  floor((count_big(o.total)+99)/100)*100 as count_value,
+  floor((o.total+99)/100)*100 as count_value,
   o.total as raw_count_value,
   o.min_value,
 	o.max_value,

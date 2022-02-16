@@ -873,7 +873,7 @@ dropAllScratchTables <- function(connectionDetails,
                                     oracleTempSchema = oracleTempSchema,
                                     detailType = resultsTable$detailType,
                                     detailSqls = paste(detailSqls, collapse = " \nunion all\n "),
-                                    fieldNames = paste(c(resultsTable$schema$FIELD_NAME, 'raw_count_value'), collapse = ", "),
+                                    fieldNames = paste(c(resultsTable$schema$FIELD_NAME, 'raw_count_value'), collapse = ", "),  # TODO: remove raw_count_value from fieldnames
                                     smallCellCount = smallCellCount)
 }
 
