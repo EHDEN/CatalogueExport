@@ -488,14 +488,18 @@ catalogueExport <- function (connectionDetails,
   ParallelLogger::logInfo(sprintf("[Total Runtime] %f %s", totalTime, attr(totalTime, "units"))) 
   # Export to csv  -----------------------------------------------------------------
   
-  exportResultsToCSV(connectionDetails,
-                    resultsDatabaseSchema,
-                    analysisIds = analysisIds,
-                    smallCellCount = smallCellCount,
-                    exportFolder = outputFolder) 
-  ParallelLogger::logInfo(sprintf("Done. The database characteristics have been exported to: %s", file.path(outputFolder, "catalogue_results.csv"))) #ToDO Add timestamp
-  ParallelLogger::logInfo("This file can now be uploaded in the Database Catalogue")
-  
+  exportSuccess <- exportResultsToCSV(connectionDetails,
+                                      resultsDatabaseSchema,
+                                      analysisIds = analysisIds,
+                                      smallCellCount = smallCellCount,
+                                      exportFolder = outputFolder)
+  if (exportSuccess) {
+    ParallelLogger::logInfo(sprintf("Done. The database characteristics have been exported to: %s", file.path(outputFolder, "catalogue_results.csv"))) #ToDO Add timestamp
+    ParallelLogger::logInfo("This file can now be uploaded in the Database Catalogue")
+  } else {
+    ParallelLogger::logWarn(sprintf("Export failed, please find results in the following tables: %1s.catalogue_results and %1s.catalogue_results_dist", resultsDatabaseSchema))
+  }
+
   ParallelLogger::unregisterLogger("catalogueExport")
   
   # Return results ----------------------------------------------------------------

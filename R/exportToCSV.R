@@ -9,6 +9,8 @@
 #' @param smallCellCount          To avoid patient identifiability, cells with small counts (<= smallCellCount) are deleted. Set to NULL if you don't want any deletions.
 #' @param exportFolder            Folder to export the results to.
 #'
+#' @returns boolean               TRUE if export succesfull, FALSE if not.
+#'
 #' @export
 exportResultsToCSV <- function(connectionDetails,
                                resultsDatabaseSchema,
@@ -22,7 +24,7 @@ exportResultsToCSV <- function(connectionDetails,
   
   # Connect to the database
   connection <- DatabaseConnector::connect(connectionDetails)
-  tryCatch({
+  success <- tryCatch({
     # Obtain the data from the results tables
     sql <- SqlRender::loadRenderTranslateSql(sqlFilename = "export/raw/export_raw_catalogue_results.sql", 
                                              packageName = "CatalogueExport", 
@@ -35,12 +37,14 @@ exportResultsToCSV <- function(connectionDetails,
     results <- DatabaseConnector::querySql(connection = connection, sql = sql)
     
     # Save the data to the export folder
-    readr::write_csv(results, file.path(exportFolder, paste0("catalogue_results-",Sys.Date(),".csv"))) },
-  error = function (e) {
+    readr::write_csv(results, file.path(exportFolder, paste0("catalogue_results-",Sys.Date(),".csv")))
+    return(TRUE)
+  }, error = function (e) {
     ParallelLogger::logError(paste0("Export query was not executed successfully"))
+    return(FALSE)
   }, finally = {
     DatabaseConnector::disconnect(connection = connection)
     rm(connection)
   })
-  
+  return(success)
 }
