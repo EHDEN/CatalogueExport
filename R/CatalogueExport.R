@@ -55,7 +55,8 @@
 #' @examples                               
 #' \dontrun{
 #' connectionDetails <- createConnectionDetails(dbms="sql server", server="some_server")
-#' results <- achilles(connectionDetails = connectionDetails, 
+#' results <- CatalogueExport(
+#'                     connectionDetails = connectionDetails,
 #'                     cdmDatabaseSchema = "cdm", 
 #'                     resultsDatabaseSchema="results", 
 #'                     scratchDatabaseSchema="scratch",
@@ -78,13 +79,11 @@ catalogueExport <- function (connectionDetails,
                       cdmVersion = "5", 
                       createIndices = TRUE,
                       numThreads = 1,
-                      tempPrefix = "tmpach",
+                      tempPrefix = "tmpcatex",
                       dropScratchTables = TRUE,
                       sqlOnly = FALSE,
                       outputFolder = "output",
                       verboseMode = TRUE) {
-  
-  achillesSql <- c()
   catalogueSql <- c()
   
   dir.create(file.path(outputFolder), showWarnings = FALSE)
@@ -146,8 +145,7 @@ catalogueExport <- function (connectionDetails,
   # Obtain analyses to run --------------------------------------------------------------------------------------------------------
   
   analysisDetails <- getAnalysisDetails()
-  costIds <- analysisDetails$ANALYSIS_ID[analysisDetails$COST == 1]
-  
+
   if (!missing(analysisIds)) {
     analysisDetails <- analysisDetails[analysisDetails$ANALYSIS_ID %in% analysisIds, ]
   }
@@ -259,7 +257,7 @@ catalogueExport <- function (connectionDetails,
                                              resultsDatabaseSchema = resultsDatabaseSchema,
                                              analysesSqls = paste(analysesSqls, collapse = " \nunion all\n "))
     
-    achillesSql <- c(achillesSql, sql)
+    catalogueSql <- c(catalogueSql, sql)
     
     if (!sqlOnly) {
       if (numThreads == 1) { 
@@ -317,14 +315,11 @@ catalogueExport <- function (connectionDetails,
                                oracleTempSchema = oracleTempSchema,
                                cdmVersion = cdmVersion,
                                tempAchillesPrefix = tempPrefix,
-                               resultsTables = resultsTables,
-                               sourceName = sourceName,
-                               numThreads = numThreads,
-                               outputFolder = outputFolder)
+                               sourceName = sourceName)
     )
   })
   
-  achillesSql <- c(achillesSql, lapply(mainSqls, function(s) s$sql))
+  catalogueSql <- c(catalogueSql, lapply(mainSqls, function(s) s$sql))
   
   
   if (!sqlOnly) {
@@ -389,22 +384,19 @@ catalogueExport <- function (connectionDetails,
   
   mergeSqls <- lapply(resultsTablesToMerge, function(table) {
     .mergeScratchTables(resultsTable = table,
-                                connectionDetails = connectionDetails,
-                                analysisIds = analysisDetails$ANALYSIS_ID,
-                                createTable = createTable,
-                                schemaDelim = schemaDelim,
-                                scratchDatabaseSchema = scratchDatabaseSchema,
-                                resultsDatabaseSchema = resultsDatabaseSchema,
-                                oracleTempSchema = oracleTempSchema,
-                                cdmVersion = cdmVersion,
-                                tempPrefix = tempPrefix,
-                                numThreads = numThreads,
-                                smallCellCount = smallCellCount,
-                                outputFolder = outputFolder,
-                                sqlOnly = sqlOnly)
+                        connectionDetails = connectionDetails,
+                        analysisIds = analysisDetails$ANALYSIS_ID,
+                        createTable = createTable,
+                        schemaDelim = schemaDelim,
+                        scratchDatabaseSchema = scratchDatabaseSchema,
+                        resultsDatabaseSchema = resultsDatabaseSchema,
+                        oracleTempSchema = oracleTempSchema,
+                        smallCellCount = smallCellCount,
+                        outputFolder = outputFolder,
+                        sqlOnly = sqlOnly)
   })
   
-  achillesSql <- c(achillesSql, mergeSqls)
+  catalogueSql <- c(catalogueSql, mergeSqls)
   
   if (!sqlOnly) {
     
@@ -484,11 +476,11 @@ catalogueExport <- function (connectionDetails,
                                 verboseMode = verboseMode, 
                                 catalogueTables = unique(catalogueTables))
   }
-  achillesSql <- c(achillesSql, indicesSql)
+  catalogueSql <- c(catalogueSql, indicesSql)
   
  
   if (sqlOnly) {
-    SqlRender::writeSql(sql = paste(achillesSql, collapse = "\n\n"), targetFile = file.path(outputFolder, "catalogue_export.sql"))
+    SqlRender::writeSql(sql = paste(catalogueSql, collapse = "\n\n"), targetFile = file.path(outputFolder, "catalogue_export.sql"))
     ParallelLogger::logInfo(sprintf("All Catalogue Export SQL scripts can be found in folder: %s", file.path(outputFolder, "catalogue_export.sql")))
   }
  
@@ -507,7 +499,7 @@ catalogueExport <- function (connectionDetails,
   ParallelLogger::unregisterLogger("catalogueExport")
   
   # Return results ----------------------------------------------------------------
-  
+  # TODO: Why are they returned as list if also exported to csv?
   
   catalogueResults <- list(resultsConnectionDetails = connectionDetails,
                           resultsTable = "catalogue_results",
@@ -515,7 +507,7 @@ catalogueExport <- function (connectionDetails,
                           analysis_table = "catalogue_analysis",
                           sourceName = sourceName,
                           analysisIds = analysisDetails$ANALYSIS_ID,
-                          achillesSql = paste(achillesSql, collapse = "\n\n"),
+                          catalogueSql = paste(catalogueSql, collapse = "\n\n"),
                           indicesSql = indicesSql,
                           call = match.call())
   
@@ -651,7 +643,7 @@ getAnalysisDetails <- function() {
 #' @export
 dropAllScratchTables <- function(connectionDetails, 
                                  scratchDatabaseSchema, 
-                                 tempPrefix = "tmpach", 
+                                 tempPrefix = "tmpcatex",
                                  numThreads = 1,
                                  tableTypes = "catalogueExport",
                                  outputFolder,
@@ -781,11 +773,8 @@ dropAllScratchTables <- function(connectionDetails,
                             vocabDatabaseSchema,
                             oracleTempSchema,
                             cdmVersion,
-                            tempAchillesPrefix, 
-                            resultsTables,
-                            sourceName,
-                            numThreads,
-                            outputFolder) {
+                            tempAchillesPrefix,
+                            sourceName) {
   
   SqlRender::loadRenderTranslateSql(sqlFilename = file.path("analyses", paste(analysisId, "sql", sep = ".")),
                                     packageName = "CatalogueExport",
@@ -812,13 +801,9 @@ dropAllScratchTables <- function(connectionDetails,
                                         scratchDatabaseSchema,
                                         resultsDatabaseSchema,
                                         oracleTempSchema,
-                                        cdmVersion,
-                                        tempPrefix,
-                                        numThreads,
                                         smallCellCount,
                                         outputFolder,
-                                        sqlOnly,
-                                        includeRawCost) {
+                                        sqlOnly) {
   
   castedNames <- apply(resultsTable$schema, 1, function(field) {
     SqlRender::render("cast(@fieldName as @fieldType) as @fieldName", 
