@@ -6,7 +6,8 @@ SELECT
   117 as analysis_id,  
 	CAST(t1.obs_month AS VARCHAR(255)) as stratum_1,
 	cast(null as varchar(255)) as stratum_2, cast(null as varchar(255)) as stratum_3, cast(null as varchar(255)) as stratum_4, cast(null as varchar(255)) as stratum_5,
-	COUNT_BIG(distinct op1.PERSON_ID) as count_value
+	COUNT_BIG(distinct op1.PERSON_ID) as count_value,
+	COUNT_BIG(distinct op1.PERSON_ID) as raw_count_value
 into @scratchDatabaseSchema@schemaDelim@tempAchillesPrefix_117
 FROM
 @cdmDatabaseSchema.observation_period op1

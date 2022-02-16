@@ -7,7 +7,8 @@ select 901 as analysis_id,
 	cast(null as varchar(255)) as stratum_3, 
 	cast(null as varchar(255)) as stratum_4, 
 	cast(null as varchar(255)) as stratum_5,
-	floor((count_big(drug_concept_id)+99)/100)*100 as count_value
+	floor((count_big(drug_concept_id)+99)/100)*100 as count_value,
+	count_big(drug_concept_id) as raw_count_value
 into @scratchDatabaseSchema@schemaDelim@tempAchillesPrefix_901
 from
 	@cdmDatabaseSchema.drug_era de1

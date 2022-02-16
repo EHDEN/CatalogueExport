@@ -37,6 +37,7 @@ priorStats (count_value, total, accumulated) as
 )
 select 403 as analysis_id,
   floor((count_big(o.total)+99)/100)*100 as count_value,
+  o.total as raw_count_value,
   o.min_value,
 	o.max_value,
 	o.avg_value,
@@ -55,7 +56,7 @@ GROUP BY o.total, o.min_value, o.max_value, o.avg_value, o.stdev_value
 --HINT DISTRIBUTE_ON_KEY(count_value)
 select analysis_id, 
 cast(null as varchar(255)) as stratum_1, cast(null as varchar(255)) as stratum_2, cast(null as varchar(255)) as stratum_3, cast(null as varchar(255)) as stratum_4, cast(null as varchar(255)) as stratum_5,
-count_value, min_value, max_value, avg_value, stdev_value, median_value, p10_value, p25_value, p75_value, p90_value
+count_value, raw_count_value, min_value, max_value, avg_value, stdev_value, median_value, p10_value, p25_value, p75_value, p90_value
 into @scratchDatabaseSchema@schemaDelim@tempAchillesPrefix_dist_403
 from #tempResults_403
 ;

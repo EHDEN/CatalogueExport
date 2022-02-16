@@ -8,7 +8,9 @@ select 200 as analysis_id,
 	cast(null as varchar(255)) as stratum_3,
 	cast(null as varchar(255)) as stratum_4,
 	cast(null as varchar(255)) as stratum_5,
-	floor((count_big(distinct vo1.PERSON_ID)+99)/100)*100 as count_value
+	floor((count_big(distinct vo1.PERSON_ID)+99)/100)*100 as count_value,
+count_big(distinct vo1.PERSON_ID) as raw_count_value,
+    count_big(distinct vo1.PERSON_ID) as raw_count_value
 into @scratchDatabaseSchema@schemaDelim@tempAchillesPrefix_200
 from
 	@cdmDatabaseSchema.visit_occurrence vo1 inner join 

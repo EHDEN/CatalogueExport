@@ -6,7 +6,8 @@ select 405 as analysis_id,
 	CAST(co1.condition_type_concept_id AS VARCHAR(255)) as stratum_2,
 	cast(null as varchar(255)) as stratum_3,
 	cast(null as varchar(255)) as stratum_4, cast(null as varchar(255)) as stratum_5,
-	floor((count_big(co1.PERSON_ID)+99)/100)*100 as count_value
+	floor((count_big(co1.PERSON_ID)+99)/100)*100 as count_value,
+    count_big(co1.PERSON_ID) as raw_count_value
 into @scratchDatabaseSchema@schemaDelim@tempAchillesPrefix_405
 from
 	@cdmDatabaseSchema.condition_occurrence co1

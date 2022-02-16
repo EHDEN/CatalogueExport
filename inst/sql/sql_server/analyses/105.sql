@@ -35,6 +35,7 @@ priorStats (count_value, total, accumulated) as
 )
 select 105 as analysis_id,
   floor((count_big(o.total)+99)/100)*100 as count_value,
+  o.total as raw_count_value,
   o.min_value,
 	o.max_value,
 	o.avg_value,
