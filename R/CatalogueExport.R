@@ -124,11 +124,12 @@ catalogueExport <- function (connectionDetails,
   
   # Check the vocabulary version is available from cdm_source
   
-  vocabularyVersion <- .getVocabularyVersion(connectionDetails, cdmDatabaseSchema)
-  if (is.na(vocabularyVersion)) {
-    stop("Error: The vocabulary version needs to be available in the cdm_source table")
+  if (!sqlOnly) {
+    vocabularyVersion <- .getVocabularyVersion(connectionDetails, cdmDatabaseSchema)
+    if (is.na(vocabularyVersion)) {
+      stop("Error: The vocabulary version needs to be available in the cdm_source table")
+    }
   }
-  
   
   # Establish folder paths --------------------------------------------------------------------------------------------------------
   
@@ -138,7 +139,7 @@ catalogueExport <- function (connectionDetails,
   
   # Get source name if none provided ----------------------------------------------------------------------------------------------
   
-  if (missing(sourceName) & !sqlOnly) {
+  if (missing(sourceName) && !sqlOnly) {
     sourceName <- .getSourceName(connectionDetails, cdmDatabaseSchema)
   }
   
@@ -152,11 +153,13 @@ catalogueExport <- function (connectionDetails,
   
   # Check if cohort table is present ---------------------------------------------------------------------------------------------
   
-  connection <- DatabaseConnector::connect(connectionDetails = connectionDetails)
-  
-  sql <- SqlRender::render("select top 1 cohort_definition_id from @resultsDatabaseSchema.cohort;", 
-                           resultsDatabaseSchema = resultsDatabaseSchema)
-  sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms)
+  # if (!sqlOnly) {
+  #   connection <- DatabaseConnector::connect(connectionDetails = connectionDetails)
+  # 
+  #   sql <- SqlRender::render("select top 1 cohort_definition_id from @resultsDatabaseSchema.cohort;", 
+  #                          resultsDatabaseSchema = resultsDatabaseSchema)
+  #   sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms)
+  # }
   
   # cohortTableExists <- tryCatch({
   #   dummy <- DatabaseConnector::querySql(connection = connection, sql = sql, errorReportFile = "cohortTableNotExist.sql")
@@ -203,7 +206,9 @@ catalogueExport <- function (connectionDetails,
     ParallelLogger::logInfo("Beginning single-threaded execution")
     
     # first invocation of the connection, to persist throughout to maintain temp tables
-    connection <- DatabaseConnector::connect(connectionDetails = connectionDetails) 
+    if (!sqlOnly) {
+      connection <- DatabaseConnector::connect(connectionDetails = connectionDetails) 
+    }
   } else if (!requireNamespace("ParallelLogger", quietly = TRUE)) {
     stop(
       "Multi-threading support requires package 'ParallelLogger'.",
@@ -221,13 +226,13 @@ catalogueExport <- function (connectionDetails,
   
   # Check if createTable is FALSE and no analysisIds specified -----------------------------------------------------
   
-  if (!createTable & missing(analysisIds)) {
+  if (!createTable && missing(analysisIds)) {
     createTable <- TRUE
   }
   
   ## Remove existing results if createTable is FALSE ----------------------------------------------------------------
   
-  if (!createTable) {
+  if (!createTable && !sqlOnly) {
     .deleteExistingResults(connectionDetails = connectionDetails,
                            resultsDatabaseSchema = resultsDatabaseSchema,
                            analysisDetails = analysisDetails)  
@@ -440,10 +445,10 @@ catalogueExport <- function (connectionDetails,
   
   # Clean up scratch tables -----------------------------------------------
   
-  if (numThreads == 1 & .supportsTempTables(connectionDetails)) {
+  if (numThreads == 1 && .supportsTempTables(connectionDetails) && !sqlOnly) {
     # Dropping the connection removes the temporary scratch tables if running in serial
     DatabaseConnector::disconnect(connection = connection)
-  } else if (dropScratchTables & !sqlOnly) {
+  } else if (dropScratchTables && !sqlOnly) {
     # Drop the scratch tables
     ParallelLogger::logInfo(sprintf("Dropping scratch Catalogue Export tables from schema %s", scratchDatabaseSchema))
     
@@ -461,7 +466,7 @@ catalogueExport <- function (connectionDetails,
   
   indicesSql <- "/* INDEX CREATION SKIPPED PER USER REQUEST */"
   
-  if (createIndices) {
+  if (createIndices && !sqlOnly) {
     catalogueTables <- lapply(unique(analysisDetails$DISTRIBUTION), function(a) {
       if (a == 0) {
         "catalogue_results"
@@ -487,17 +492,19 @@ catalogueExport <- function (connectionDetails,
   totalTime <- Sys.time() - startTime
   ParallelLogger::logInfo(sprintf("[Total Runtime] %f %s", totalTime, attr(totalTime, "units"))) 
   # Export to csv  -----------------------------------------------------------------
-  
-  exportSuccess <- exportResultsToCSV(connectionDetails,
-                                      resultsDatabaseSchema,
-                                      analysisIds = analysisIds,
-                                      smallCellCount = smallCellCount,
-                                      exportFolder = outputFolder)
-  if (exportSuccess) {
-    ParallelLogger::logInfo(sprintf("Done. The database characteristics have been exported to: %s", file.path(outputFolder, "catalogue_results.csv"))) #ToDO Add timestamp
-    ParallelLogger::logInfo("This file can now be uploaded in the Database Catalogue")
-  } else {
-    ParallelLogger::logWarn(sprintf("Export failed, please find results in the following tables: %1s.catalogue_results and %1s.catalogue_results_dist", resultsDatabaseSchema))
+  if (!sqlOnly) {
+    exportSuccess <- exportResultsToCSV(connectionDetails,
+                                        resultsDatabaseSchema,
+                                        analysisIds = analysisIds,
+                                        smallCellCount = smallCellCount,
+                                        exportFolder = outputFolder)
+    
+    if (exportSuccess) {
+      ParallelLogger::logInfo(sprintf("Done. The database characteristics have been exported to: %s", file.path(outputFolder, "catalogue_results.csv"))) #ToDO Add timestamp
+      ParallelLogger::logInfo("This file can now be uploaded in the Database Catalogue")
+    } else {
+      ParallelLogger::logWarn(sprintf("Export failed, please find results in the following tables: %1s.catalogue_results and %1s.catalogue_results_dist", resultsDatabaseSchema))
+    }
   }
 
   ParallelLogger::unregisterLogger("catalogueExport")
