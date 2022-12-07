@@ -6,7 +6,9 @@ The vignette of the package can be downloaded [here](https://github.com/EHDEN/Ca
  
 CatalogueExport executes a set of analyses based on the **A**utomated **C**haracterization of **H**ealth **I**nformation at **L**arge-scale **L**ongitudinal **E**vidence **S**ystems ([Achilles](https://github,com/OHDSI/Achilles)). Additional analyses have been added using the same approach as Achilles. The R-package exports to a comma-seperated files format that can be loaded in the EHDEN Database Catalogue. The results are visualized in the Database Dashboard and Network level visualizations.
 
-**Note that in CatalogueExport no exact counts for concept_ids are exported but these are rounded up to the nearest multiple of 100 and will therefore only be an approximation which is enough for univariate feasibility assessments in the catalogue. This means that this package will not re-use results from Achilles.**
+Note that in CatalogueExport no exact counts for concept_ids are exported but these are rounded up to the nearest multiple of 100 and will therefore only be an approximation which is enough for univariate feasibility assessments in the catalogue. This means that this package will not re-use results from Achilles.
+
+There are three exceptions to this rule. The following analyses are NOT rounded to the nearest multiple of 100: 1 (total person count), 101 (person count per year) and 102 (person count per gender and age).
 
 CatalogueExport is actively being developed for CDM v5.x only.
 
