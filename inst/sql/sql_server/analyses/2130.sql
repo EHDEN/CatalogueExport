@@ -6,7 +6,7 @@ WITH CTE_procedure AS (
 	SELECT ca.ancestor_concept_id AS concept_id, COUNT_BIG(*)
  AS DRC
 	FROM @cdmDatabaseSchema.device_exposure co
-		JOIN @cdmDatabaseSchema.concept_ancestor ca
+		JOIN @vocabDatabaseSchema.concept_ancestor ca
 			ON ca.descendant_concept_id = co.device_concept_id
 	GROUP BY ca.ancestor_concept_id
 )
