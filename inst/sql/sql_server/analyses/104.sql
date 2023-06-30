@@ -34,7 +34,8 @@ ageStatsPrior (gender_concept_id, age_value, total, accumulated) as
 )
 select 104 as analysis_id,
   CAST(o.gender_concept_id AS VARCHAR(255)) as stratum_1,
-  floor((count_big(o.total)+99)/100)*100 as count_value, 
+  floor((o.total+99)/100)*100 as count_value,
+  o.total as raw_count_value,
   o.min_value,
 	o.max_value,
 	o.avg_value,
@@ -53,7 +54,7 @@ GROUP BY o.gender_concept_id, o.total, o.min_value, o.max_value, o.avg_value, o.
 --HINT DISTRIBUTE_ON_KEY(stratum_1) 
 select analysis_id, stratum_1, 
 cast(null as varchar(255)) as stratum_2, cast(null as varchar(255)) as stratum_3, cast(null as varchar(255)) as stratum_4, cast(null as varchar(255)) as stratum_5,
-count_value, min_value, max_value, avg_value, stdev_value, median_value, p10_value, p25_value, p75_value, p90_value
+count_value, raw_count_value, min_value, max_value, avg_value, stdev_value, median_value, p10_value, p25_value, p75_value, p90_value
 into @scratchDatabaseSchema@schemaDelim@tempAchillesPrefix_dist_104
 from #tempResults_104
 ;

@@ -37,7 +37,7 @@
 #'                                         Must be accessible to/from the cdmDatabaseSchema and the resultsDatabaseSchema. Default is resultsDatabaseSchema. 
 #'                                         Making this "#" will run CatalogueExport in single-threaded mode and use temporary tables instead of permanent tables.
 #' @param vocabDatabaseSchema		           String name of database schema that contains OMOP Vocabulary. Default is cdmDatabaseSchema. On SQL Server, this should specifiy both the database and the schema, so for example 'results.dbo'.
-#' @param oracleTempSchema                 For Oracle only: the name of the database schema where you want all temporary tables to be managed. Requires create/insert permissions to this database. 
+#' @param tempEmulationSchema              For Oracle only: the name of the database schema where you want all temporary tables to be managed. Requires create/insert permissions to this database.
 #' @param sourceName		                   String name of the data source name. If blank, CDM_SOURCE table will be queried to try to obtain this.
 #' @param analysisIds		                   (OPTIONAL) A vector containing the set of CatalogueExport analysisIds for which results will be generated. 
 #'                                         If not specified, all analyses will be executed. Use \code{\link{getAnalysisDetails}} to get a list of all CatalogueExport analyses and their Ids.
@@ -46,7 +46,7 @@
 #' @param cdmVersion                       Define the OMOP CDM version used:  currently supports v5 and above. Use major release number or minor number only (e.g. 5, 5.3)
 #' @param createIndices                    Boolean to determine if indices should be created on the resulting CatalogueExport tables. Default= TRUE
 #' @param numThreads                       (OPTIONAL, multi-threaded mode) The number of threads to use to run CatalogueExport in parallel. Default is 1 thread.
-#' @param tempPrefix               (OPTIONAL, multi-threaded mode) The prefix to use for the scratch CatalogueExport analyses tables. Default is "tmpach"
+#' @param tempPrefix               (OPTIONAL, multi-threaded mode) The prefix to use for the scratch CatalogueExport analyses tables. Default is "tmpcatex"
 #' @param dropScratchTables                (OPTIONAL, multi-threaded mode) TRUE = drop the scratch tables (may take time depending on dbms), FALSE = leave them in place for later removal.
 #' @param sqlOnly                          Boolean to determine if CatalogueExport should be fully executed. TRUE = just generate SQL files, don't actually run, FALSE = run CatalogueExport
 #' @param outputFolder                     Path to store logs and SQL files
@@ -55,7 +55,8 @@
 #' @examples                               
 #' \dontrun{
 #' connectionDetails <- createConnectionDetails(dbms="sql server", server="some_server")
-#' results <- achilles(connectionDetails = connectionDetails, 
+#' results <- CatalogueExport(
+#'                     connectionDetails = connectionDetails,
 #'                     cdmDatabaseSchema = "cdm", 
 #'                     resultsDatabaseSchema="results", 
 #'                     scratchDatabaseSchema="scratch",
@@ -70,7 +71,7 @@ catalogueExport <- function (connectionDetails,
                       resultsDatabaseSchema = cdmDatabaseSchema, 
                       scratchDatabaseSchema = resultsDatabaseSchema,
                       vocabDatabaseSchema = cdmDatabaseSchema,
-                      oracleTempSchema = resultsDatabaseSchema,
+                      tempEmulationSchema = resultsDatabaseSchema,
                       sourceName = "", 
                       analysisIds = "", 
                       createTable = TRUE,
@@ -78,13 +79,11 @@ catalogueExport <- function (connectionDetails,
                       cdmVersion = "5", 
                       createIndices = TRUE,
                       numThreads = 1,
-                      tempPrefix = "tmpach",
+                      tempPrefix = "tmpcatex",
                       dropScratchTables = TRUE,
                       sqlOnly = FALSE,
                       outputFolder = "output",
                       verboseMode = TRUE) {
-  
-  achillesSql <- c()
   catalogueSql <- c()
   
   dir.create(file.path(outputFolder), showWarnings = FALSE)
@@ -125,11 +124,12 @@ catalogueExport <- function (connectionDetails,
   
   # Check the vocabulary version is available from cdm_source
   
-  vocabularyVersion <- .getVocabularyVersion(connectionDetails, cdmDatabaseSchema)
-  if (is.na(vocabularyVersion)) {
-    stop("Error: The vocabulary version needs to be available in the cdm_source table")
+  if (!sqlOnly) {
+    vocabularyVersion <- .getVocabularyVersion(connectionDetails, cdmDatabaseSchema)
+    if (is.na(vocabularyVersion)) {
+      stop("Error: The vocabulary version needs to be available in the cdm_source table")
+    }
   }
-  
   
   # Establish folder paths --------------------------------------------------------------------------------------------------------
   
@@ -139,26 +139,27 @@ catalogueExport <- function (connectionDetails,
   
   # Get source name if none provided ----------------------------------------------------------------------------------------------
   
-  if (missing(sourceName) & !sqlOnly) {
+  if (missing(sourceName) && !sqlOnly) {
     sourceName <- .getSourceName(connectionDetails, cdmDatabaseSchema)
   }
   
   # Obtain analyses to run --------------------------------------------------------------------------------------------------------
   
   analysisDetails <- getAnalysisDetails()
-  costIds <- analysisDetails$ANALYSIS_ID[analysisDetails$COST == 1]
-  
+
   if (!missing(analysisIds)) {
     analysisDetails <- analysisDetails[analysisDetails$ANALYSIS_ID %in% analysisIds, ]
   }
   
   # Check if cohort table is present ---------------------------------------------------------------------------------------------
   
-  connection <- DatabaseConnector::connect(connectionDetails = connectionDetails)
-  
-  sql <- SqlRender::render("select top 1 cohort_definition_id from @resultsDatabaseSchema.cohort;", 
-                           resultsDatabaseSchema = resultsDatabaseSchema)
-  sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms)
+  # if (!sqlOnly) {
+  #   connection <- DatabaseConnector::connect(connectionDetails = connectionDetails)
+  # 
+  #   sql <- SqlRender::render("select top 1 cohort_definition_id from @resultsDatabaseSchema.cohort;", 
+  #                          resultsDatabaseSchema = resultsDatabaseSchema)
+  #   sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms)
+  # }
   
   # cohortTableExists <- tryCatch({
   #   dummy <- DatabaseConnector::querySql(connection = connection, sql = sql, errorReportFile = "cohortTableNotExist.sql")
@@ -205,7 +206,9 @@ catalogueExport <- function (connectionDetails,
     ParallelLogger::logInfo("Beginning single-threaded execution")
     
     # first invocation of the connection, to persist throughout to maintain temp tables
-    connection <- DatabaseConnector::connect(connectionDetails = connectionDetails) 
+    if (!sqlOnly) {
+      connection <- DatabaseConnector::connect(connectionDetails = connectionDetails) 
+    }
   } else if (!requireNamespace("ParallelLogger", quietly = TRUE)) {
     stop(
       "Multi-threading support requires package 'ParallelLogger'.",
@@ -223,13 +226,13 @@ catalogueExport <- function (connectionDetails,
   
   # Check if createTable is FALSE and no analysisIds specified -----------------------------------------------------
   
-  if (!createTable & missing(analysisIds)) {
+  if (!createTable && missing(analysisIds)) {
     createTable <- TRUE
   }
   
   ## Remove existing results if createTable is FALSE ----------------------------------------------------------------
   
-  if (!createTable) {
+  if (!createTable && !sqlOnly) {
     .deleteExistingResults(connectionDetails = connectionDetails,
                            resultsDatabaseSchema = resultsDatabaseSchema,
                            analysisDetails = analysisDetails)  
@@ -259,7 +262,7 @@ catalogueExport <- function (connectionDetails,
                                              resultsDatabaseSchema = resultsDatabaseSchema,
                                              analysesSqls = paste(analysesSqls, collapse = " \nunion all\n "))
     
-    achillesSql <- c(achillesSql, sql)
+    catalogueSql <- c(catalogueSql, sql)
     
     if (!sqlOnly) {
       if (numThreads == 1) { 
@@ -314,17 +317,14 @@ catalogueExport <- function (connectionDetails,
                                cdmDatabaseSchema = cdmDatabaseSchema,
                                resultsDatabaseSchema = resultsDatabaseSchema,
                                vocabDatabaseSchema = vocabDatabaseSchema,
-                               oracleTempSchema = oracleTempSchema,
+                               tempEmulationSchema = tempEmulationSchema,
                                cdmVersion = cdmVersion,
-                               tempAchillesPrefix = tempPrefix,
-                               resultsTables = resultsTables,
-                               sourceName = sourceName,
-                               numThreads = numThreads,
-                               outputFolder = outputFolder)
+                               tempPrefix = tempPrefix,
+                               sourceName = sourceName)
     )
   })
   
-  achillesSql <- c(achillesSql, lapply(mainSqls, function(s) s$sql))
+  catalogueSql <- c(catalogueSql, lapply(mainSqls, function(s) s$sql))
   
   
   if (!sqlOnly) {
@@ -389,22 +389,19 @@ catalogueExport <- function (connectionDetails,
   
   mergeSqls <- lapply(resultsTablesToMerge, function(table) {
     .mergeScratchTables(resultsTable = table,
-                                connectionDetails = connectionDetails,
-                                analysisIds = analysisDetails$ANALYSIS_ID,
-                                createTable = createTable,
-                                schemaDelim = schemaDelim,
-                                scratchDatabaseSchema = scratchDatabaseSchema,
-                                resultsDatabaseSchema = resultsDatabaseSchema,
-                                oracleTempSchema = oracleTempSchema,
-                                cdmVersion = cdmVersion,
-                                tempPrefix = tempPrefix,
-                                numThreads = numThreads,
-                                smallCellCount = smallCellCount,
-                                outputFolder = outputFolder,
-                                sqlOnly = sqlOnly)
+                        connectionDetails = connectionDetails,
+                        analysisIds = analysisDetails$ANALYSIS_ID,
+                        createTable = createTable,
+                        schemaDelim = schemaDelim,
+                        scratchDatabaseSchema = scratchDatabaseSchema,
+                        resultsDatabaseSchema = resultsDatabaseSchema,
+                        tempEmulationSchema = tempEmulationSchema,
+                        smallCellCount = smallCellCount,
+                        outputFolder = outputFolder,
+                        sqlOnly = sqlOnly)
   })
   
-  achillesSql <- c(achillesSql, mergeSqls)
+  catalogueSql <- c(catalogueSql, mergeSqls)
   
   if (!sqlOnly) {
     
@@ -443,17 +440,17 @@ catalogueExport <- function (connectionDetails,
   }
   
   if (!sqlOnly) {
-    ParallelLogger::logInfo(sprintf("Done. Catalogue results can now be found in schema %s", resultsDatabaseSchema))
+    ParallelLogger::logInfo(sprintf("Done. Catalogue Export results can now be found in schema %s", resultsDatabaseSchema))
   }
   
   # Clean up scratch tables -----------------------------------------------
   
-  if (numThreads == 1 & .supportsTempTables(connectionDetails)) {
+  if (numThreads == 1 && .supportsTempTables(connectionDetails) && !sqlOnly) {
     # Dropping the connection removes the temporary scratch tables if running in serial
     DatabaseConnector::disconnect(connection = connection)
-  } else if (dropScratchTables & !sqlOnly) {
+  } else if (dropScratchTables && !sqlOnly) {
     # Drop the scratch tables
-    ParallelLogger::logInfo(sprintf("Dropping scratch Catalogie tables from schema %s", scratchDatabaseSchema))
+    ParallelLogger::logInfo(sprintf("Dropping scratch Catalogue Export tables from schema %s", scratchDatabaseSchema))
     
     dropAllScratchTables(connectionDetails = connectionDetails, 
                          scratchDatabaseSchema = scratchDatabaseSchema, 
@@ -462,14 +459,14 @@ catalogueExport <- function (connectionDetails,
                          tableTypes = c("catalogueExport"),
                          outputFolder = outputFolder)
     
-    ParallelLogger::logInfo(sprintf("Temporary Catalogue tables removed from schema %s", scratchDatabaseSchema))
+    ParallelLogger::logInfo(sprintf("Temporary Catalogue Export tables removed from schema %s", scratchDatabaseSchema))
   }
   
   # Create indices -----------------------------------------------------------------
   
   indicesSql <- "/* INDEX CREATION SKIPPED PER USER REQUEST */"
   
-  if (createIndices) {
+  if (createIndices && !sqlOnly) {
     catalogueTables <- lapply(unique(analysisDetails$DISTRIBUTION), function(a) {
       if (a == 0) {
         "catalogue_results"
@@ -484,30 +481,36 @@ catalogueExport <- function (connectionDetails,
                                 verboseMode = verboseMode, 
                                 catalogueTables = unique(catalogueTables))
   }
-  achillesSql <- c(achillesSql, indicesSql)
+  catalogueSql <- c(catalogueSql, indicesSql)
   
  
   if (sqlOnly) {
-    SqlRender::writeSql(sql = paste(achillesSql, collapse = "\n\n"), targetFile = file.path(outputFolder, "catalogue_export.sql"))
+    SqlRender::writeSql(sql = paste(catalogueSql, collapse = "\n\n"), targetFile = file.path(outputFolder, "catalogue_export.sql"))
     ParallelLogger::logInfo(sprintf("All Catalogue Export SQL scripts can be found in folder: %s", file.path(outputFolder, "catalogue_export.sql")))
   }
  
   totalTime <- Sys.time() - startTime
   ParallelLogger::logInfo(sprintf("[Total Runtime] %f %s", totalTime, attr(totalTime, "units"))) 
   # Export to csv  -----------------------------------------------------------------
-  
-  exportResultsToCSV(connectionDetails,
-                    resultsDatabaseSchema,
-                    analysisIds = analysisIds,
-                    smallCellCount = smallCellCount,
-                    exportFolder = outputFolder) 
-  ParallelLogger::logInfo(sprintf("Done. The database characteristics have been exported to: %s", file.path(outputFolder, "catalogue_results.csv"))) #ToDO Add timestamp
-  ParallelLogger::logInfo("This file can now be uploaded in the Database Catalogue")
-  
+  if (!sqlOnly) {
+    exportSuccess <- exportResultsToCSV(connectionDetails,
+                                        resultsDatabaseSchema,
+                                        analysisIds = analysisIds,
+                                        smallCellCount = smallCellCount,
+                                        exportFolder = outputFolder)
+    
+    if (exportSuccess) {
+      ParallelLogger::logInfo(sprintf("Done. The database characteristics have been exported to: %s", file.path(outputFolder, "catalogue_results.csv"))) #ToDO Add timestamp
+      ParallelLogger::logInfo("This file can now be uploaded in the Database Catalogue")
+    } else {
+      ParallelLogger::logWarn(sprintf("Export failed, please find results in the following tables: %1s.catalogue_results and %1s.catalogue_results_dist", resultsDatabaseSchema))
+    }
+  }
+
   ParallelLogger::unregisterLogger("catalogueExport")
   
   # Return results ----------------------------------------------------------------
-  
+  # TODO: Why are they returned as list if also exported to csv?
   
   catalogueResults <- list(resultsConnectionDetails = connectionDetails,
                           resultsTable = "catalogue_results",
@@ -515,7 +518,7 @@ catalogueExport <- function (connectionDetails,
                           analysis_table = "catalogue_analysis",
                           sourceName = sourceName,
                           analysisIds = analysisDetails$ANALYSIS_ID,
-                          achillesSql = paste(achillesSql, collapse = "\n\n"),
+                          catalogueSql = paste(catalogueSql, collapse = "\n\n"),
                           indicesSql = indicesSql,
                           call = match.call())
   
@@ -534,7 +537,7 @@ catalogueExport <- function (connectionDetails,
 #' @param resultsDatabaseSchema		         Fully qualified name of database schema that we can write final results to. Default is cdmDatabaseSchema. 
 #'                                         On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_results.dbo'.
 #' @param outputFolder                     Path to store logs and SQL files
-#' @param sqlOnly                          TRUE = just generate SQL files, don't actually run, FALSE = run Achilles
+#' @param sqlOnly                          TRUE = just generate SQL files, don't actually run, FALSE = run Catelogue Export
 #' @param verboseMode                      Boolean to determine if the console will show all execution steps. Default = TRUE 
 #' @param catalogueTables                  Which CatalogueExport tables should be indexed? Default is both catalogue_results and catalogue_results_dist. 
 #' 
@@ -642,7 +645,7 @@ getAnalysisDetails <- function() {
 #' 
 #' @param connectionDetails                An R object of type \code{connectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.
 #' @param scratchDatabaseSchema            string name of database schema that CatalogueExport scratch tables were written to. 
-#' @param tempPrefix               The prefix to use for the "temporary" (but actually permanent) CatalogueExport analyses tables. Default is "tmpach"
+#' @param tempPrefix               The prefix to use for the "temporary" (but actually permanent) CatalogueExport analyses tables. Default is "tmpcatex"
 #' @param numThreads                       The number of threads to use to run this function. Default is 1 thread.
 #' @param tableTypes                       The types of scratch tables to drop: catalogueExport
 #' @param outputFolder                     Path to store logs and SQL files
@@ -651,7 +654,7 @@ getAnalysisDetails <- function() {
 #' @export
 dropAllScratchTables <- function(connectionDetails, 
                                  scratchDatabaseSchema, 
-                                 tempPrefix = "tmpach", 
+                                 tempPrefix = "tmpcatex",
                                  numThreads = 1,
                                  tableTypes = "catalogueExport",
                                  outputFolder,
@@ -779,13 +782,10 @@ dropAllScratchTables <- function(connectionDetails,
                             cdmDatabaseSchema,
                             resultsDatabaseSchema,
                             vocabDatabaseSchema,
-                            oracleTempSchema,
+                            tempEmulationSchema,
                             cdmVersion,
-                            tempAchillesPrefix, 
-                            resultsTables,
-                            sourceName,
-                            numThreads,
-                            outputFolder) {
+                            tempPrefix,
+                            sourceName) {
   
   SqlRender::loadRenderTranslateSql(sqlFilename = file.path("analyses", paste(analysisId, "sql", sep = ".")),
                                     packageName = "CatalogueExport",
@@ -796,8 +796,8 @@ dropAllScratchTables <- function(connectionDetails,
                                     vocabDatabaseSchema = vocabDatabaseSchema,
                                     resultsDatabaseSchema = resultsDatabaseSchema,
                                     schemaDelim = schemaDelim,
-                                    tempAchillesPrefix = tempAchillesPrefix,
-                                    oracleTempSchema = oracleTempSchema,
+                                    tempAchillesPrefix = tempPrefix,
+                                    tempEmulationSchema = tempEmulationSchema,
                                     source_name = sourceName,
                                     package_version = packageVersion(pkg = "CatalogueExport"),
                                     cdmVersion = cdmVersion,
@@ -811,14 +811,10 @@ dropAllScratchTables <- function(connectionDetails,
                                         schemaDelim,
                                         scratchDatabaseSchema,
                                         resultsDatabaseSchema,
-                                        oracleTempSchema,
-                                        cdmVersion,
-                                        tempPrefix,
-                                        numThreads,
+                                        tempEmulationSchema,
                                         smallCellCount,
                                         outputFolder,
-                                        sqlOnly,
-                                        includeRawCost) {
+                                        sqlOnly) {
   
   castedNames <- apply(resultsTable$schema, 1, function(field) {
     SqlRender::render("cast(@fieldName as @fieldType) as @fieldName", 
@@ -829,7 +825,7 @@ dropAllScratchTables <- function(connectionDetails,
   # obtain the analysis SQLs to union in the merge ------------------------------------------------------------------
   
   detailSqls <- lapply(resultsTable$analysisIds[resultsTable$analysisIds %in% analysisIds], function(analysisId) { 
-    analysisSql <- SqlRender::render(sql = "select @castedNames from 
+    analysisSql <- SqlRender::render(sql = "select @castedNames, raw_count_value from
                                      @scratchDatabaseSchema@schemaDelim@tablePrefix_@analysisId", 
                                      scratchDatabaseSchema = scratchDatabaseSchema,
                                      schemaDelim = schemaDelim,
@@ -854,7 +850,7 @@ dropAllScratchTables <- function(connectionDetails,
         }
       })
       
-      benchmarkSql <- SqlRender::render(sql = "select @benchmarkSelect",
+      benchmarkSql <- SqlRender::render(sql = "select @benchmarkSelect, NULL as raw_count_value",
                                         benchmarkSelect = paste(benchmarkSelects, collapse = ", "))
       
       analysisSql <- paste(c(analysisSql, benchmarkSql), collapse = " union all ")
@@ -870,7 +866,7 @@ dropAllScratchTables <- function(connectionDetails,
                                     warnOnMissingParameters = FALSE,
                                     createTable = createTable,
                                     resultsDatabaseSchema = resultsDatabaseSchema,
-                                    oracleTempSchema = oracleTempSchema,
+                                    tempEmulationSchema = tempEmulationSchema,
                                     detailType = resultsTable$detailType,
                                     detailSqls = paste(detailSqls, collapse = " \nunion all\n "),
                                     fieldNames = paste(resultsTable$schema$FIELD_NAME, collapse = ", "),

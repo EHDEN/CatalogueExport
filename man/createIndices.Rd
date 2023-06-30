@@ -21,7 +21,7 @@ On SQL Server, this should specifiy both the database and the schema, so for exa
 
 \item{outputFolder}{Path to store logs and SQL files}
 
-\item{sqlOnly}{TRUE = just generate SQL files, don't actually run, FALSE = run Achilles}
+\item{sqlOnly}{TRUE = just generate SQL files, don't actually run, FALSE = run Catelogue Export}
 
 \item{verboseMode}{Boolean to determine if the console will show all execution steps. Default = TRUE}
 

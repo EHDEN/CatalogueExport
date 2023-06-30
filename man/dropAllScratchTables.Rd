@@ -7,7 +7,7 @@
 dropAllScratchTables(
   connectionDetails,
   scratchDatabaseSchema,
-  tempPrefix = "tmpach",
+  tempPrefix = "tmpcatex",
   numThreads = 1,
   tableTypes = "catalogueExport",
   outputFolder,
@@ -19,7 +19,7 @@ dropAllScratchTables(
 
 \item{scratchDatabaseSchema}{string name of database schema that CatalogueExport scratch tables were written to.}
 
-\item{tempPrefix}{The prefix to use for the "temporary" (but actually permanent) CatalogueExport analyses tables. Default is "tmpach"}
+\item{tempPrefix}{The prefix to use for the "temporary" (but actually permanent) CatalogueExport analyses tables. Default is "tmpcatex"}
 
 \item{numThreads}{The number of threads to use to run this function. Default is 1 thread.}
 

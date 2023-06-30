@@ -34,7 +34,8 @@ ageStatsPrior (age_value, total, accumulated) as
 tempResults as
 (
   select 103 as analysis_id,
-    floor((count_big(o.total)+99)/100)*100 as count_value,
+    floor((o.total+99)/100)*100 as count_value,
+    o.total as raw_count_value,
   	o.min_value,
   	o.max_value,
   	o.avg_value,
@@ -51,7 +52,7 @@ tempResults as
 )
 select analysis_id, 
 cast(null as varchar(255)) as stratum_1, cast(null as varchar(255)) as stratum_2, cast(null as varchar(255)) as stratum_3, cast(null as varchar(255)) as stratum_4, cast(null as varchar(255)) as stratum_5, 
-count_value, min_value, max_value, avg_value, stdev_value, median_value, p10_value, p25_value, p75_value, p90_value
+count_value, raw_count_value, min_value, max_value, avg_value, stdev_value, median_value, p10_value, p25_value, p75_value, p90_value
 into @scratchDatabaseSchema@schemaDelim@tempAchillesPrefix_dist_103
 from tempResults
 ;

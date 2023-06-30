@@ -10,7 +10,7 @@ output:
     number_sections: yes
     toc: yes
 vignette: >
-  %\VignetteIndexEntry{Running CatalogieExport on Your CDM}
+  %\VignetteIndexEntry{Running CatalogueExport on Your CDM}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---

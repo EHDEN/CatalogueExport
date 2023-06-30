@@ -1,8 +1,8 @@
 Package: CatalogueExport
 Type: Package
 Title: Exports Descriptive Statistics Summary for the EHDEN Database Catalogue
-Version: 1.0.2
-Date: 2021-03-29
+Version: 1.0.3
+Date: 2022-02-16
 Authors@R: c(
   person("Peter", "Rijnbeek", email = "p.rijnbeek@erasmusmc.nl", role = c("aut", "cre")),
   person("Patrick", "Ryan", email = "ryan@ohdsi.org", role = c("aut")),
@@ -37,5 +37,5 @@ Suggests:
 VignetteBuilder: knitr
 License: Apache License
 Roxygen: list(wrap = FALSE)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Encoding: UTF-8
